@@ -1,0 +1,131 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Security and My account.
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* The name in the header: opens My account. */
+  .account-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 3px 6px 3px 3px;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: border-color 110ms ease, background 110ms ease;
+  }
+
+  .account-link:hover { background: var(--color-muted); border-color: var(--color-line-strong); }
+
+  /* A password box with a show/hide eye inside its right edge. */
+  .password-field { position: relative; }
+  .password-field .input { padding-right: 44px; }
+
+  .password-eye {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    color: var(--color-neutral-500);
+    transition: color 110ms ease;
+  }
+
+  .password-eye:hover { color: var(--color-ink); }
+  .password-eye:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; color: var(--color-ink); }
+
+  /* What the account owes before the panel opens. */
+  .owes-banner {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    background: var(--color-warning-100);
+    border-left: 3px solid var(--color-warning-800);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-warning-800);
+  }
+
+  /* ── two-factor setup ──────────────────────────────────────────────── */
+  .twofa-setup { display: flex; flex-direction: column; gap: 16px; }
+
+  .qr-box {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 216px;
+    height: 216px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .twofa-steps { flex: 1 1 260px; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; color: var(--color-neutral-800); }
+  .twofa-steps li + li { margin-top: 6px; }
+
+  .secret-key {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 3px 8px;
+    background: var(--color-muted);
+    border: 1px solid var(--color-line-strong);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px;
+    letter-spacing: .06em;
+    word-break: break-all;
+  }
+
+  .recovery-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--color-success-100);
+    border-left: 3px solid var(--color-success-800);
+    font-size: 13px;
+    color: var(--color-neutral-800);
+  }
+
+  .recovery-box > strong { color: var(--color-success-800); }
+
+  .recovery-codes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    margin: 4px 0;
+    padding: 0;
+    list-style: none;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 14px;
+  }
+
+  .recovery-codes li { padding: 6px 8px; background: #fff; border: 1px solid var(--color-line-strong); text-align: center; }
+
+  .danger-zone { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--color-line); }
+
+  /* ── sessions ──────────────────────────────────────────────────────── */
+  .session-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .session-row:last-child { border-bottom: 0; }
+  .session-device { font-size: 14px; font-weight: 700; color: var(--color-ink); }
+  .session-meta { font-size: 12px; color: var(--color-neutral-600); }
+
+  /* ── two-factor by role, and the log ───────────────────────────────── */
+  .role-require-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+
+  .log-bad td:nth-child(2) { color: var(--color-accent-700); }
+}

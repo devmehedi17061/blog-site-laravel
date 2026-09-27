@@ -1,0 +1,32 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     The slider engine's structure (resources/js/site.js). Only how slides
+     sit and move lives here; how a slider *looks* — arrows, dots, cards —
+     is each section's own CSS.
+     ══════════════════════════════════════════════════════════════════ */
+  .sl { position: relative; outline: none; }
+  .sl:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+  .sl-viewport { overflow: hidden; }
+  .sl [data-slider-track] { display: flex; transition: transform 520ms cubic-bezier(.22, .61, .36, 1); will-change: transform; touch-action: pan-y; }
+  .sl-slide [data-slider-track] > [data-slide] { flex: 0 0 calc(100% / var(--sl-per-view, 1)); min-width: 0; box-sizing: border-box; }
+
+  /* Fade: every slide in the same place, only the current one showing. */
+  .sl-fade [data-slider-track] { display: grid; }
+  .sl-fade [data-slider-track] > [data-slide] { grid-area: 1 / 1; opacity: 0; visibility: hidden; transition: opacity 600ms ease, visibility 600ms; }
+  .sl-fade [data-slider-track] > [data-slide].is-active { opacity: 1; visibility: visible; }
+
+  /* Nothing to move between: no arrows, no dots. */
+  .sl-single [data-slider-prev],
+  .sl-single [data-slider-next],
+  .sl-single [data-slider-dots] { display: none !important; }
+
+  /* Before the script runs, show the first slide only (no flash of all). */
+  [data-slider]:not(.sl) [data-slider-track] > [data-slide]:not(:first-child) { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sl [data-slider-track],
+    .sl-fade [data-slider-track] > [data-slide] { transition: none; }
+  }
+}

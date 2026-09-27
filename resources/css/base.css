@@ -1,0 +1,66 @@
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Type scale — tightened from the mockup, which was set for a marketing
+     page rather than a screen full of data. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+    margin: 0 0 8px;
+  }
+
+  h1 { font-size: 34px; }
+  h2 { font-size: 26px; }
+  h3 { font-size: 21px; }
+  h4 { font-size: 17px; }
+  h5 { font-size: 15px; }
+
+  /* One focus treatment everywhere, so keyboard users are never lost. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent-400);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-accent-200);
+    color: var(--color-accent-900);
+  }
+
+  /* Alpine paints the DOM on boot; hide the raw template until it does. */
+  [x-cloak] { display: none !important; }
+
+  /* Scrollbars — the panel has two scroll areas side by side, and the OS
+     default draws a heavy light track straight through the dark sidebar. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-400) transparent;
+  }
+
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-neutral-400);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover { background: var(--color-neutral-500); background-clip: content-box; }
+
+  .scroll-dark { scrollbar-color: var(--color-neutral-700) transparent; }
+  .scroll-dark::-webkit-scrollbar-thumb { background: var(--color-neutral-700); background-clip: content-box; }
+  .scroll-dark::-webkit-scrollbar-thumb:hover { background: var(--color-neutral-600); background-clip: content-box; }
+}

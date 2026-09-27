@@ -1,0 +1,532 @@
+<title>সাইট পরিচালনার গাইড</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --paper: #f7f6f3;
+    --card: #ffffff;
+    --ink: #1f1b18;
+    --soft: #5f5852;
+    --line: #e4dfd9;
+    --accent: #d6361f;
+    --accent-soft: #fbe9e5;
+    --tip: #eaf4ee;
+    --tip-ink: #1e5b38;
+    --warn: #fdf1dc;
+    --warn-ink: #7a4d00;
+    --chip: #efece8;
+    --code: #2a2521;
+    --code-ink: #f4efe9;
+    --body: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+    --head: "Baloo Da 2", "Hind Siliguri", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #171412; --card: #201c19; --ink: #efe9e3; --soft: #b3aaa2; --line: #36302b;
+      --accent: #ff7a63; --accent-soft: #3a211c; --tip: #16291e; --tip-ink: #9fd8b3;
+      --warn: #33270f; --warn-ink: #f0c877; --chip: #2c2723; --code: #0f0d0c; --code-ink: #efe9e3;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #171412; --card: #201c19; --ink: #efe9e3; --soft: #b3aaa2; --line: #36302b;
+    --accent: #ff7a63; --accent-soft: #3a211c; --tip: #16291e; --tip-ink: #9fd8b3;
+    --warn: #33270f; --warn-ink: #f0c877; --chip: #2c2723; --code: #0f0d0c; --code-ink: #efe9e3;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font: 400 16.5px/1.85 var(--body); }
+  .shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 48px; max-width: 1180px; margin: 0 auto; padding-inline: 24px; padding-block: 40px 80px; }
+
+  /* table of contents */
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 6px; }
+  .toc-title { margin: 0 0 12px; font: 700 13px/1.3 var(--body); letter-spacing: .06em; color: var(--soft); }
+  .toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; display: flex; flex-direction: column; gap: 2px; }
+  .toc li { counter-increment: toc; }
+  .toc a { display: grid; grid-template-columns: 28px 1fr; gap: 4px; padding: 5px 8px; color: var(--ink); text-decoration: none; font-size: 14.5px; line-height: 1.45; border-radius: 6px; }
+  .toc a::before { content: counter(toc, bengali); color: var(--accent); font-weight: 600; }
+  .toc a:hover, .toc a:focus-visible { background: var(--chip); outline: none; }
+
+  /* article */
+  main { min-width: 0; }
+  .intro { padding-bottom: 28px; margin-bottom: 36px; border-bottom: 2px solid var(--ink); }
+  .kicker { margin: 0 0 6px; font: 600 13px/1.3 var(--mono); letter-spacing: .04em; color: var(--accent); }
+  h1 { margin: 0 0 12px; font: 800 44px/1.15 var(--head); text-wrap: balance; }
+  .lede { margin: 0; max-width: 64ch; font-size: 18px; color: var(--soft); }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; padding: 0; list-style: none; font-size: 14.5px; color: var(--soft); }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  section { max-width: 76ch; padding-top: 18px; margin-bottom: 42px; scroll-margin-top: 16px; }
+  h2 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; font: 700 29px/1.25 var(--head); text-wrap: balance; }
+  h2 .no { flex: none; min-width: 34px; font: 700 15px/1 var(--mono); color: var(--accent); }
+  h3 { margin: 26px 0 6px; font: 700 20px/1.35 var(--head); }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+
+  .where { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; font-size: 14px; color: var(--soft); }
+  .where b { font-weight: 600; color: var(--soft); }
+  .path { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .path span { padding: 1px 9px; font: 600 13px/1.8 var(--mono); color: var(--ink); background: var(--chip); border-radius: 5px; }
+  .path i { font-style: normal; color: var(--soft); }
+  kbd, code { padding: 1px 6px; font: 500 0.86em/1.6 var(--mono); background: var(--chip); border-radius: 4px; }
+  .ui { font-weight: 600; color: var(--ink); background: linear-gradient(transparent 62%, var(--accent-soft) 62%); }
+
+  ol.steps { margin: 6px 0 14px; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+  ol.steps > li { counter-increment: step; position: relative; padding-left: 44px; }
+  ol.steps > li::before { content: counter(step, bengali); position: absolute; left: 0; top: 2px; display: grid; place-items: center; width: 28px; height: 28px; font: 700 14px/1 var(--body); color: #fff; background: var(--accent); border-radius: 50%; }
+  ul { margin: 4px 0 14px; padding-left: 22px; }
+  li + li { margin-top: 4px; }
+
+  .note { margin: 14px 0; padding: 12px 16px; border-radius: 8px; font-size: 15.5px; }
+  .note strong { display: block; margin-bottom: 2px; }
+  .tip { background: var(--tip); color: var(--tip-ink); }
+  .warn { background: var(--warn); color: var(--warn-ink); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { padding: 9px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; font-size: 14px; color: var(--soft); background: var(--chip); }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+
+  pre { overflow-x: auto; margin: 10px 0 16px; padding: 14px 16px; font: 400 13.5px/1.7 var(--mono); color: var(--code-ink); background: var(--code); border-radius: 8px; }
+  pre code { padding: 0; background: none; color: inherit; font: inherit; }
+
+  .foot { max-width: 76ch; margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 14px; color: var(--soft); }
+
+  @media (max-width: 980px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-inline: 16px; padding-block: 24px 60px; }
+    .toc { position: static; max-height: none; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+    .toc ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+    h1 { font-size: 34px; }
+    h2 { font-size: 25px; }
+  }
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="সূচিপত্র">
+    <p class="toc-title">সূচিপত্র</p>
+    <ol>
+      <li><a href="#start">শুরু: লগইন ও প্যানেল</a></li>
+      <li><a href="#dashboard">ড্যাশবোর্ড</a></li>
+      <li><a href="#pages">পেজ তৈরি ও সাজানো</a></li>
+      <li><a href="#posts">ব্লগ পোস্ট লেখা</a></li>
+      <li><a href="#categories">ক্যাটাগরি</a></li>
+      <li><a href="#media">মিডিয়া লাইব্রেরি</a></li>
+      <li><a href="#menu">মেনু</a></li>
+      <li><a href="#trash">ট্র্যাশ ও ভার্সন হিস্ট্রি</a></li>
+      <li><a href="#sections">সেকশন লাইব্রেরি</a></li>
+      <li><a href="#sliders">স্লাইডার সেকশন</a></li>
+      <li><a href="#header-footer">হেডার ও ফুটার</a></li>
+      <li><a href="#forms">ফর্ম ও ইনবক্স</a></li>
+      <li><a href="#users">ইউজার ও রোল</a></li>
+      <li><a href="#security">সিকিউরিটি</a></li>
+      <li><a href="#settings">সেটিংস</a></li>
+      <li><a href="#design">ডিজাইন (রং, ফন্ট, প্রস্থ)</a></li>
+      <li><a href="#frontend">ফ্রন্ট এন্ড ও কোড</a></li>
+      <li><a href="#account">নিজের অ্যাকাউন্ট</a></li>
+      <li><a href="#faq">সমস্যা ও সমাধান</a></li>
+      <li><a href="#server">সার্ভার কমান্ড</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="intro">
+      <p class="kicker">ব্যবহারকারী গাইড · Laravel CMS</p>
+      <h1>সাইট পরিচালনার গাইড</h1>
+      <p class="lede">অ্যাডমিন প্যানেলের কোথায় কী আছে আর প্রতিটি কাজ কীভাবে করবেন, ধাপে ধাপে। প্যানেলের মেনু ও বোতামগুলো ইংরেজিতে লেখা, তাই এখানে সেগুলো ঠিক যেমন দেখায় তেমনই দেওয়া হয়েছে — যেমন <span class="ui">Save</span>, <span class="ui">Publish</span>।</p>
+      <ul class="facts">
+        <li><b>প্যানেলের ঠিকানা:</b> আপনার-ডোমেইন<code>/admin</code></li>
+        <li><b>ভাষা:</b> প্যানেল ইংরেজি, সাইট যেকোনো ভাষায়</li>
+        <li><b>ট্র্যাশে থাকে:</b> ৩০ দিন</li>
+      </ul>
+    </header>
+
+    <!-- ১ -->
+    <section id="start">
+      <h2><span class="no">০১</span>শুরু: লগইন ও প্যানেল</h2>
+      <ol class="steps">
+        <li>ব্রাউজারে <code>/admin</code> খুলুন। ইমেইল ও পাসওয়ার্ড দিন। পাসওয়ার্ডের পাশের চোখ আইকনে ক্লিক করলে লেখাটা দেখা যায়।</li>
+        <li>যদি আপনার রোলের জন্য টু-ফ্যাক্টর চালু থাকে, পরের ধাপে অথেনটিকেটর অ্যাপের ৬ অঙ্কের কোড অথবা ইমেইলে আসা কোড দিন।</li>
+        <li>বাঁ পাশের সাইডবারে সব কাজের জায়গা: <span class="ui">Overview</span>, <span class="ui">Content</span>, <span class="ui">Builders</span>, <span class="ui">Access</span>, <span class="ui">System</span>। আপনার রোলের অনুমতি নেই এমন মেনু দেখাবেই না।</li>
+        <li>উপরের ডানে <span class="ui">View site ↗</span> দিয়ে লাইভ সাইট দেখা যায়, <span class="ui">Clear cache</span> দিয়ে ক্যাশ মোছা যায়, আর নিজের নাম চাপলে <span class="ui">My account</span>।</li>
+      </ol>
+      <div class="note tip"><strong>ফোনে প্যানেল</strong>ছোট স্ক্রিনে সাইডবার আইকনে ভাঁজ হয়ে থাকে। উপরের ☰ বোতাম চাপলে পুরোটা খোলে।</div>
+    </section>
+
+    <!-- ২ -->
+    <section id="dashboard">
+      <h2><span class="no">০২</span>ড্যাশবোর্ড</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Overview</span><i>›</i><span>Dashboard</span></span></p>
+      <p>লগইন করলেই এটা খোলে। পুরো সাইটের অবস্থা এক নজরে:</p>
+      <ul>
+        <li><b>উপরের অংশ:</b> সাইট লাইভ নাকি মেইনটেন্যান্সে, সার্চ ইঞ্জিনে দেখা যাচ্ছে কিনা, কোন ভাষা, ইমেইল কীভাবে যায়। এখান থেকেই <span class="ui">+ New post</span> ও <span class="ui">+ New page</span>।</li>
+        <li><b>ছয়টা সংখ্যা:</b> লাইভ পোস্ট, লাইভ পেজ, ৩০ দিনের ফর্ম মেসেজ, মিডিয়া ফাইল, সক্রিয় ইউজার, ট্র্যাশ। যেকোনোটায় ক্লিক করলে সেই পাতায় যায়।</li>
+        <li><b>Last 30 days চার্ট:</b> প্রতিদিন কত পোস্ট প্রকাশ হলো, কত মেসেজ এলো, কত ফাইল আপলোড হলো। দিনের উপর মাউস রাখলে সংখ্যা দেখায়।</li>
+        <li><b>Needs attention:</b> যা ঠিক করা দরকার তার তালিকা — যেমন ইমেইল যাচ্ছে না, ছবির alt টেক্সট নেই, অনেক দিনের পুরোনো ড্রাফট। ক্লিক করলে যেখানে ঠিক করবেন সেখানে নিয়ে যায়।</li>
+        <li><b>SEO coverage, Coming up, Recently edited, Latest messages, Recent activity, System health</b> — বাকি কার্ডগুলো নাম অনুযায়ী।</li>
+      </ul>
+    </section>
+
+    <!-- ৩ -->
+    <section id="pages">
+      <h2><span class="no">০৩</span>পেজ তৈরি ও সাজানো</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Pages</span></span></p>
+      <p>পেজ মানে স্থায়ী পাতা — হোম, আমাদের সম্পর্কে, সার্ভিস, যোগাযোগ। প্রতিটা পেজ সেকশন দিয়ে তৈরি।</p>
+      <h3>নতুন পেজ</h3>
+      <ol class="steps">
+        <li><span class="ui">+ New page</span> চাপুন এবং একটা টেমপ্লেট বেছে নিন (খালি পেজ বা শুরুর সেকশনসহ কোনো টেমপ্লেট)।</li>
+        <li><span class="ui">Content</span> ট্যাবে শিরোনাম লিখুন। <span class="ui">Slug</span> ফাঁকা রাখলে শিরোনাম থেকে ঠিকানা তৈরি হয়।</li>
+        <li><span class="ui">Sections</span> ট্যাবে লাইব্রেরি থেকে সেকশন যোগ করুন, ওপর-নিচ করে সাজান, আর প্রতিটার লেখা ও ছবি বসান (বিস্তারিত নিচে <a href="#sections">সেকশন লাইব্রেরি</a>তে)।</li>
+        <li>ডান পাশে <span class="ui">Layout</span> বেছে নিন: <span class="ui">Standard</span> (হেডার ও ফুটারসহ), <span class="ui">Landing page</span> (হেডার-ফুটার ছাড়া, বিজ্ঞাপনের পাতার জন্য), <span class="ui">No header</span>, <span class="ui">No footer</span>।</li>
+        <li>প্রকাশের আগে দেখতে <span class="ui">Preview ↗</span>। ঠিক থাকলে <span class="ui">Publish</span>; পরে প্রকাশ করতে Status <span class="ui">Scheduled</span> করে তারিখ দিন।</li>
+      </ol>
+      <h3>হোমপেজ নির্ধারণ</h3>
+      <p>Pages তালিকার উপরে <span class="ui">Homepage</span> অংশে বেছে নিন সাইটের মূল ঠিকানায় (<code>/</code>) কী দেখাবে — কোনো একটা পেজ, অথবা <span class="ui">Latest blog posts</span>। হোমপেজ ট্র্যাশে দেওয়া বা অপ্রকাশিত করা যায় না, আগে অন্য পেজকে হোমপেজ করতে হয়।</p>
+      <h3>আরও যা করা যায়</h3>
+      <ul>
+        <li><b>Duplicate:</b> তালিকায় কপি বোতাম — পুরো পেজ সব সেকশনসহ ড্রাফট হিসেবে কপি হয়।</li>
+        <li><b>SEO ট্যাব:</b> সার্চ ইঞ্জিনের শিরোনাম ও বর্ণনা, ফোকাস কিওয়ার্ড, সোশ্যাল শেয়ারের ছবি। রঙিন ডট বলে দেয় SEO কেমন।</li>
+        <li><b>Code ট্যাব:</b> শুধু এই পেজের নিজস্ব CSS ও JavaScript (JavaScript শুধু Super Admin পারেন)।</li>
+        <li><b>History:</b> আগের যেকোনো সংরক্ষিত ভার্সন দেখা ও ফিরিয়ে আনা (<a href="#trash">অধ্যায় ৮</a>)।</li>
+      </ul>
+      <div class="note tip"><strong>ঠিকানা বদলালেও লিংক ভাঙে না</strong>প্রকাশিত পেজের slug বদলালে পুরোনো ঠিকানা থেকে নতুনটায় নিজে থেকেই রিডাইরেক্ট তৈরি হয়।</div>
+    </section>
+
+    <!-- ৪ -->
+    <section id="posts">
+      <h2><span class="no">০৪</span>ব্লগ পোস্ট লেখা</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Posts</span></span></p>
+      <ol class="steps">
+        <li><span class="ui">New post</span> চাপুন। শিরোনাম লিখুন।</li>
+        <li>এডিটরের টুলবার দিয়ে লিখুন: হেডিং, বোল্ড, লিস্ট, লিংক, রঙ, হাইলাইট। নতুন লাইন <kbd>Shift</kbd>+<kbd>Enter</kbd>।</li>
+        <li>ছবি বসাতে টুলবারের ছবি বোতাম — মিডিয়া লাইব্রেরি থেকে বা নতুন আপলোড। ছবিতে ক্লিক করলে আকার, অবস্থান, alt টেক্সট ও ক্যাপশন বদলানো যায়।</li>
+        <li><span class="ui">Excerpt</span> ঘরে এক-দুই লাইনের সারাংশ — ব্লগের তালিকায় ও গুগলে দেখায়।</li>
+        <li>ডান পাশে <span class="ui">Featured image</span>, <span class="ui">Category</span>, <span class="ui">Author</span> ঠিক করুন।</li>
+        <li><span class="ui">Publish</span> চাপুন। ভবিষ্যতের তারিখ দিলে সেই দিন নিজে থেকে প্রকাশ হবে।</li>
+      </ol>
+      <p>পোস্টেও <span class="ui">SEO</span>, <span class="ui">Code</span> ট্যাব আর <span class="ui">History</span> আছে, পেজের মতোই।</p>
+    </section>
+
+    <!-- ৫ -->
+    <section id="categories">
+      <h2><span class="no">০৫</span>ক্যাটাগরি</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Categories</span></span></p>
+      <ol class="steps">
+        <li>নাম লিখে নতুন ক্যাটাগরি তৈরি করুন। চাইলে <span class="ui">Sits under</span> দিয়ে অন্য ক্যাটাগরির নিচে রাখুন (উপ-ক্যাটাগরি)।</li>
+        <li>বর্ণনা, ছবি, আর সার্চ ইঞ্জিনের জন্য <span class="ui">Meta title</span> ও <span class="ui">Meta description</span> দিন।</li>
+        <li>টেনে ক্রম সাজান। প্রতিটা ক্যাটাগরির নিজের পাতা থাকে: <code>/category/নাম</code>।</li>
+      </ol>
+    </section>
+
+    <!-- ৬ -->
+    <section id="media">
+      <h2><span class="no">০৬</span>মিডিয়া লাইব্রেরি</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Media library</span></span></p>
+      <ol class="steps">
+        <li>ফাইল টেনে এনে ছাড়ুন (<span class="ui">Drop files to upload them here</span>) অথবা আপলোড বোতাম দিয়ে বেছে নিন।</li>
+        <li>বাঁ পাশে ফোল্ডার বানিয়ে ফাইল গুছিয়ে রাখুন। একাধিক ফাইল বেছে <span class="ui">Move to</span> দিয়ে সরানো যায়।</li>
+        <li>কোনো ছবিতে ক্লিক করে <span class="ui">Alt text</span> ও <span class="ui">Caption</span> লিখুন। <span class="ui">Used by</span> দেখায় ছবিটা কোন পোস্টে ব্যবহার হয়েছে।</li>
+      </ol>
+      <div class="note tip"><strong>দ্রুত লোড হয়</strong>আপলোড করা ছবির ছোট WebP কপি নিজে থেকে তৈরি হয়, তাই ফোনে ছোট ছবি আসে আর পাতা দ্রুত খোলে।</div>
+      <div class="note warn"><strong>মুছলে ট্র্যাশে যায়</strong>ট্র্যাশে থাকা অবস্থায় ছবি যেসব পোস্টে আছে সেখানে দেখাতেই থাকে। স্থায়ীভাবে মুছলে তখন সরে যায়।</div>
+    </section>
+
+    <!-- ৭ -->
+    <section id="menu">
+      <h2><span class="no">০৭</span>মেনু</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Menu control</span></span></p>
+      <p>দুটো মেনু আছে: <span class="ui">Header</span> (উপরের) আর <span class="ui">Footer</span> (নিচের)।</p>
+      <ol class="steps">
+        <li>উপরে কোন মেনু সাজাবেন বেছে নিন, তারপর আইটেম যোগ করুন।</li>
+        <li><span class="ui">Label</span> (যা লেখা থাকবে) আর <span class="ui">Link</span> দিন — সাইটের কোনো পেজ বেছে নেওয়া যায় বা বাইরের ঠিকানা লেখা যায়।</li>
+        <li>চাইলে <span class="ui">Icon</span> বেছে নিন, <span class="ui">Opens in</span> দিয়ে নতুন ট্যাবে খোলান, আর <span class="ui">Who sees it</span> দিয়ে ঠিক করুন কারা দেখবে।</li>
+        <li>টেনে সাজান; ডানে সরালে উপ-মেনু হয় (তিন স্তর পর্যন্ত)। শেষে সংরক্ষণ করুন।</li>
+      </ol>
+      <p>উপ-মেনুর পাশের ছোট তীর চিহ্নের ধরন হেডার থেকে বদলানো যায় (<a href="#header-footer">অধ্যায় ১১</a>)।</p>
+    </section>
+
+    <!-- ৮ -->
+    <section id="trash">
+      <h2><span class="no">০৮</span>ট্র্যাশ ও ভার্সন হিস্ট্রি</h2>
+      <h3>ট্র্যাশ</h3>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Content</span><i>›</i><span>Trash</span></span></p>
+      <p>পোস্ট, পেজ বা ফাইল মুছলে সরাসরি মুছে যায় না, ট্র্যাশে যায় এবং <b>৩০ দিন</b> থাকে।</p>
+      <ol class="steps">
+        <li><span class="ui">Posts</span>, <span class="ui">Pages</span>, <span class="ui">Media</span> ট্যাব থেকে বেছে নিন। প্রতিটা সারিতে লেখা থাকে কে মুছেছে আর কত দিন বাকি।</li>
+        <li><span class="ui">Restore</span> চাপলে আগের জায়গায়, আগের ঠিকানায় ফিরে আসে।</li>
+        <li>স্থায়ীভাবে মুছতে <span class="ui">Delete for good</span>, পুরো তালিকা খালি করতে <span class="ui">Empty trash</span>। এটা আর ফেরানো যায় না।</li>
+      </ol>
+      <h3>ভার্সন হিস্ট্রি</h3>
+      <p>পেজ বা পোস্ট যতবার সংরক্ষণ করবেন, একটা ভার্সন জমা থাকে (শেষ ৫০টা)।</p>
+      <ol class="steps">
+        <li>এডিটরের উপরে <span class="ui">History</span> চাপুন।</li>
+        <li>বাঁয়ে তারিখ অনুযায়ী ভার্সন; একটায় ক্লিক করলে এখনকার লেখার সাথে তুলনা দেখায় — লাল অংশ সেই ভার্সনে ছিল, সবুজ অংশ পরে যোগ হয়েছে।</li>
+        <li><span class="ui">Restore this version</span> চাপলে সেই লেখা ফিরে আসে। স্ট্যাটাস, ঠিকানা আর লেখক বদলায় না, আর এখনকার লেখাও হিস্ট্রিতে থেকে যায়।</li>
+      </ol>
+    </section>
+
+    <!-- ৯ -->
+    <section id="sections">
+      <h2><span class="no">০৯</span>সেকশন লাইব্রেরি</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Builders</span><i>›</i><span>Section library</span></span></p>
+      <p>সেকশন একবার তৈরি করুন — এর ঘর (ফিল্ড), HTML আর CSS — তারপর যেকোনো পেজে যোগ করুন। প্রতিটা পেজ নিজের লেখা বসায়, কিন্তু নকশা থাকে এখানে। এখানে বদলালে যেসব পেজে সেকশনটা আছে সবখানে বদলায়।</p>
+      <h3>নতুন সেকশন</h3>
+      <ol class="steps">
+        <li><span class="ui">+ New section</span> চাপুন, নাম ও ছোট বর্ণনা দিন।</li>
+        <li><span class="ui">Fields</span> ট্যাবে ঘর যোগ করুন। প্রতিটা ঘরের একটা <b>key</b> থাকে, যা HTML-এ <code>{{ key }}</code> হিসেবে বসে। ধরনগুলো: <span class="ui">Text</span>, <span class="ui">Rich text</span>, <span class="ui">Media</span> (ছবি), <span class="ui">Link</span>, <span class="ui">Choice</span> (ড্রপ-ডাউন), <span class="ui">Form</span>, আর <span class="ui">Group</span> (যা পুনরাবৃত্তি হয়, যেমন কার্ড বা স্লাইড)।</li>
+        <li><span class="ui">HTML</span> ট্যাবে নকশা লিখুন। Group-এর অংশ <code>{{#নাম}} … {{/নাম}}</code> দিয়ে ঘিরে দিন, প্রতিটা আইটেমের জন্য সেটা একবার করে আসবে।</li>
+        <li><span class="ui">CSS</span> ট্যাবে স্টাইল লিখুন। এই CSS শুধু এই সেকশনের ভেতরেই কাজ করে, পাতার অন্য কিছুতে লাগে না। CSS-এ <code>:root</code> মানে পুরো সেকশনের ব্যান্ড।</li>
+        <li>ডানে <span class="ui">Preview</span> দেখুন: <span class="ui">Fit</span>, <span class="ui">Desktop</span>, <span class="ui">Tablet</span>, <span class="ui">Phone</span> — প্রতিটা স্ক্রিনে কেমন দেখাবে। বড় করে দেখতে <span class="ui">⤢ Enlarge</span>। শেষে <span class="ui">Save section</span>।</li>
+      </ol>
+      <h3>কোড এডিটরের সুবিধা</h3>
+      <ul>
+        <li>টাইপ করার সময় HTML ট্যাগ ও CSS প্রপার্টির সাজেশন আসে; ট্যাগ নিজে থেকে বন্ধ হয়।</li>
+        <li>কোনো ট্যাগে কার্সর রাখলে তার জোড়া ট্যাগ (খোলা ↔ বন্ধ) হাইলাইট হয়।</li>
+        <li><code>{{</code> লিখলে সব ফিল্ডের তালিকা আসে, বেছে নিলেই বসে যায়।</li>
+        <li>Emmet: <code>div.card&gt;h3+p</code> লিখে <kbd>Tab</kbd> চাপলে পুরো HTML তৈরি হয়।</li>
+        <li><kbd>Ctrl</kbd>+<kbd>F</kbd> খোঁজা, <kbd>Ctrl</kbd>+<kbd>Z</kbd> আগের অবস্থায় ফেরা।</li>
+      </ul>
+      <h3>পেজে সেকশন বসানো</h3>
+      <ol class="steps">
+        <li>পেজ এডিটরে <span class="ui">Sections</span> ট্যাবে লাইব্রেরি থেকে সেকশন যোগ করুন।</li>
+        <li>ঘরগুলো পূরণ করুন — লেখা, ছবি (<span class="ui">Choose</span>), লিংক; Choice ঘরে ড্রপ-ডাউন থেকে বেছে নিন।</li>
+        <li>চাইলে সেকশনের পেছনের রং, প্যাডিং, কন্টেন্টের প্রস্থ, আর ফোন বা ডেস্কটপে লুকানোর অপশন ঠিক করুন।</li>
+      </ol>
+    </section>
+
+    <!-- ১০ -->
+    <section id="sliders">
+      <h2><span class="no">১০</span>স্লাইডার সেকশন</h2>
+      <p>লাইব্রেরিতে তিনটা তৈরি সেকশন আছে, নমুনা লেখা ও ছবিসহ। পেজে যোগ করলেই কাজ করে; তারপর নিজের লেখা বসান।</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>সেকশন</th><th>কী দেখায়</th><th>যা বদলানো যায়</th></tr></thead>
+          <tbody>
+            <tr><td><b>Hero Slider</b></td><td>বাঁয়ে লেখা ও দুটো বোতাম, ডানে ছবি, পেছনে গ্রেডিয়েন্ট রং</td><td>প্রতিটা স্লাইডের লেখা, বোতাম, ছবি; গ্রেডিয়েন্টের দুই রং; লেখার রং; বোতামের রং</td></tr>
+            <tr><td><b>Testimonial Slider</b></td><td>ক্লায়েন্টদের মতামত, নিচে ডট ও তীর বোতাম</td><td>শিরোনাম ও রঙিন শব্দ, প্রতিটা মতামত (লেখা, নাম, পদবি, ছবি), একসাথে কয়টা দেখাবে (১/২/৩)</td></tr>
+            <tr><td><b>Call to Action Banner</b></td><td>গ্রেডিয়েন্ট ব্যানার, শিরোনাম, লাইন আর বোতাম</td><td>লেখা, দুটো বোতাম, গ্রেডিয়েন্টের রং, <span class="ui">split</span> (পাশাপাশি) বা <span class="ui">centered</span> (মাঝে)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>স্লাইডারের সব অপশন</h3>
+      <p>দুটো স্লাইডারেই এই ড্রপ-ডাউনগুলো আছে:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>অপশন</th><th>মান</th><th>কী করে</th></tr></thead>
+          <tbody>
+            <tr><td><span class="ui">Autoplay</span></td><td><code>yes</code> / <code>no</code></td><td>নিজে থেকে পরের স্লাইডে যায়</td></tr>
+            <tr><td><span class="ui">Seconds per slide</span></td><td><code>3</code> – <code>12</code></td><td>প্রতিটা স্লাইড কত সেকেন্ড থাকবে</td></tr>
+            <tr><td><span class="ui">Effect</span></td><td><code>slide</code> / <code>fade</code></td><td>পাশে সরে যাবে নাকি মিলিয়ে বদলাবে</td></tr>
+            <tr><td><span class="ui">Loop</span></td><td><code>yes</code> / <code>no</code></td><td>শেষ স্লাইডের পর আবার প্রথমটা</td></tr>
+            <tr><td><span class="ui">Pause while the mouse is over it</span></td><td><code>yes</code> / <code>no</code></td><td>মাউস রাখলে থেমে থাকে</td></tr>
+            <tr><td><span class="ui">Show arrows</span></td><td><code>yes</code> / <code>no</code></td><td>‹ › বোতাম দেখাবে কিনা</td></tr>
+            <tr><td><span class="ui">Show dots</span></td><td><code>yes</code> / <code>no</code></td><td>নিচের ডট দেখাবে কিনা</td></tr>
+            <tr><td><span class="ui">Quotes side by side</span></td><td><code>1</code> / <code>2</code> / <code>3</code></td><td>(শুধু টেস্টিমোনিয়াল) বড় স্ক্রিনে একসাথে কয়টা; ট্যাবলেটে সর্বোচ্চ ২, ফোনে ১</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>ফোনে আঙুল দিয়ে সোয়াইপ করে আর কিবোর্ডের ← → দিয়েও স্লাইড বদলানো যায়।</p>
+      <h3>নিজের স্লাইডার বানানো</h3>
+      <p>যেকোনো সেকশনকে স্লাইডার বানাতে HTML-এ এই চিহ্নগুলো দিন; অপশনগুলো Choice ফিল্ডের সাথে জুড়ে দিতে পারেন:</p>
+<pre><code>&lt;div data-slider data-autoplay="{{ autoplay }}" data-interval="{{ interval }}"
+     data-effect="{{ effect }}" data-per-view="2" data-loop="yes" data-pause="yes"&gt;
+  &lt;div data-slider-track&gt;
+    {{#items}}&lt;div data-slide&gt;…&lt;/div&gt;{{/items}}
+  &lt;/div&gt;
+  &lt;button data-slider-prev&gt;‹&lt;/button&gt; &lt;button data-slider-next&gt;›&lt;/button&gt;
+  &lt;div data-slider-dots&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </section>
+
+    <!-- ১১ -->
+    <section id="header-footer">
+      <h2><span class="no">১১</span>হেডার ও ফুটার</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Builders</span><i>›</i><span>Header &amp; footer</span></span></p>
+      <p>সেকশনের মতোই তৈরি — HTML, CSS আর ঘর। একটা হেডার আর একটা ফুটার সাইটে চালু থাকে (<span class="ui">In use</span>)।</p>
+      <ol class="steps">
+        <li>বাঁয়ের <span class="ui">Headers</span> / <span class="ui">Footers</span> থেকে একটা বেছে নিন, বা <span class="ui">+ New header</span>।</li>
+        <li><span class="ui">Content</span> ট্যাবে লেখা বদলান (যেমন উপরের নোটিশ, বোতামের লেখা, রং)।</li>
+        <li><span class="ui">HTML</span> ট্যাবের <span class="ui">Insert</span> বোতাম দিয়ে কার্সরের জায়গায় বসান: লোগো (<span class="ui">Logo + name</span>, <span class="ui">Logo</span>), মেনু (<span class="ui">Header menu</span>, <span class="ui">Footer menu</span>), <span class="ui">☰ Menu button</span>, <span class="ui">Search box</span>, <span class="ui">Social icons</span>, ফোন, ইমেইল, ঠিকানা, <span class="ui">This year</span>।</li>
+        <li>উপরের প্রিভিউতে <span class="ui">Desktop</span> / <span class="ui">Tablet</span> / <span class="ui">Phone</span> বদলে দেখুন। ফোনে ☰ বোতাম চেপে মেনু খুলে দেখা যায়।</li>
+        <li>হেডারের জন্য: <span class="ui">Stay at the top while scrolling</span> (স্ক্রল করলেও উপরে থাকবে) আর <span class="ui">Drop-down arrow</span> (Triangle, Chevron, Plus, Arrow, None)।</li>
+        <li><span class="ui">Save header</span>। অন্যটা সাইটে চালু করতে <span class="ui">Use on the site</span>।</li>
+      </ol>
+      <div class="note tip"><strong>ফোনের মেনু</strong>☰ বোতাম হেডারে <code>menu-open</code> ক্লাস যোগ করে। মেনু যে অংশে আছে তাতে <code>data-menu-panel</code> দিন, আর CSS-এ <code>:root.menu-open .nav { display: flex; }</code>।</div>
+    </section>
+
+    <!-- ১২ -->
+    <section id="forms">
+      <h2><span class="no">১২</span>ফর্ম ও ইনবক্স</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Builders</span><i>›</i><span>Form builder</span></span> ও <span class="path"><span>Form inbox</span></span></p>
+      <ol class="steps">
+        <li><span class="ui">Form builder</span>-এ নাম দিয়ে <span class="ui">Create and build</span>।</li>
+        <li>ফিল্ড যোগ করুন — নাম, ইমেইল, ফোন, ড্রপ-ডাউন, তারিখ, ফাইল ইত্যাদি; কোনটা বাধ্যতামূলক ঠিক করুন।</li>
+        <li><span class="ui">Settings</span>-এ বোতামের লেখা, পাঠানোর পরের ধন্যবাদ বার্তা, আর কাকে ইমেইলে জানাবে।</li>
+        <li>পেজে <b>Contact Form</b> সেকশন যোগ করে এই ফর্মটা বেছে নিন।</li>
+        <li>মেসেজ আসে <span class="ui">Form inbox</span>-এ: পড়া/না-পড়া, খোঁজা, মোছা, আর <span class="ui">Export CSV</span>।</li>
+      </ol>
+    </section>
+
+    <!-- ১৩ -->
+    <section id="users">
+      <h2><span class="no">১৩</span>ইউজার ও রোল</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Access</span><i>›</i><span>User management</span></span> ও <span class="path"><span>Roles &amp; permissions</span></span></p>
+      <h3>নতুন ইউজার</h3>
+      <ol class="steps">
+        <li>নাম, ইমেইল, রোল দিন; পাসওয়ার্ড লিখুন বা <span class="ui">Generate</span> চাপুন।</li>
+        <li>স্ট্যাটাস সক্রিয় রাখুন। কাউকে সাময়িক বন্ধ করতে স্ট্যাটাস বদলান — পরের ক্লিকেই সে সাইন-আউট হয়ে যাবে।</li>
+      </ol>
+      <h3>রোল</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>রোল</th><th>যা পারে</th></tr></thead>
+          <tbody>
+            <tr><td><b>Super Admin</b></td><td>সবকিছু, কোড ও সিকিউরিটিসহ</td></tr>
+            <tr><td><b>Editor</b></td><td>সব কন্টেন্ট, মেনু, সেকশন, ফর্ম, হেডার ও ফুটার</td></tr>
+            <tr><td><b>Author</b></td><td>শুধু নিজের পোস্ট লেখা ও মিডিয়া আপলোড</td></tr>
+            <tr><td><b>Viewer</b></td><td>শুধু দেখা</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>নতুন রোল তৈরি করে প্রতিটা মডিউলের <b>View / Create / Update / Delete</b> আলাদাভাবে চালু-বন্ধ করা যায়।</p>
+    </section>
+
+    <!-- ১৪ -->
+    <section id="security">
+      <h2><span class="no">১৪</span>সিকিউরিটি</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Access</span><i>›</i><span>Security</span></span></p>
+      <ul>
+        <li><b>Failed sign-ins:</b> কয়বার ভুল পাসওয়ার্ড দিলে কত মিনিট লক থাকবে।</li>
+        <li><b>Password rules:</b> ন্যূনতম দৈর্ঘ্য, বড়-ছোট হাতের অক্ষর, সংখ্যা, চিহ্ন; নির্দিষ্ট দিন পর পাসওয়ার্ড বদলানো বাধ্যতামূলক।</li>
+        <li><b>Who must use two-factor:</b> কোন রোলের জন্য টু-ফ্যাক্টর বাধ্যতামূলক।</li>
+        <li><b>Staying signed in:</b> কত মিনিট কিছু না করলে সাইন-আউট; <b>One session per person</b> — একসাথে একটার বেশি ডিভাইসে নয়।</li>
+        <li><b>Signed in right now:</b> কে কোথা থেকে লগইন আছে, চাইলে সাইন-আউট করানো।</li>
+        <li><b>Admin IP rules:</b> শুধু নির্দিষ্ট IP থেকে প্যানেল খোলা যাবে।</li>
+        <li><b>HTTPS &amp; security headers:</b> <b>Always use HTTPS</b>, <b>HSTS</b>, সুরক্ষা হেডার।</li>
+        <li>নিচে লগ — কে কখন কী করেছে।</li>
+      </ul>
+      <div class="note warn"><strong>সাবধানে</strong>IP rules বা HTTPS চালু করার আগে নিশ্চিত হোন আপনার IP ও HTTPS ঠিক কাজ করছে; না হলে নিজেই আটকে যেতে পারেন। আটকে গেলে <a href="#server">অধ্যায় ২০</a>-এর কমান্ড দেখুন।</div>
+    </section>
+
+    <!-- ১৫ -->
+    <section id="settings">
+      <h2><span class="no">১৫</span>সেটিংস</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>System</span><i>›</i><span>Settings</span></span></p>
+      <h3>Site</h3>
+      <ul>
+        <li><b>Brand:</b> সাইটের নাম, ট্যাগলাইন, লোগো, ফুটারের লোগো (গাঢ় পটভূমির জন্য), ফেভিকন (ব্রাউজারের ট্যাবের ছোট চৌকো আইকন), লোগোর পাশে নাম দেখাবে কিনা।</li>
+        <li><b>Contact &amp; social:</b> ইমেইল, ফোন, ঠিকানা, সোশ্যাল লিংক — হেডার-ফুটারে এখান থেকেই দেখায়।</li>
+        <li><b>SEO defaults:</b> শিরোনামের ধরন, ডিফল্ট বর্ণনা, শেয়ারের ছবি, গুগল/বিং ভেরিফিকেশন, <code>robots.txt</code>; আর <b>Hide the whole site from search engines</b>।</li>
+        <li><b>Locale &amp; maintenance:</b> সাইটের ভাষা (বাংলা থাকলে তারিখও বাংলায়), টাইমজোন, তারিখের ধরন, আর <b>Maintenance mode</b> (দর্শকরা “শীঘ্রই ফিরছি” পাতা দেখবে, আপনি লগইন থাকলে সাইট দেখতে পাবেন)।</li>
+      </ul>
+      <h3>Email</h3>
+      <ol class="steps">
+        <li>প্রোভাইডার বেছে নিন: Gmail, Zoho Mail, Webmail (হোস্টিংয়ের), বা Custom SMTP। যেটা বাছবেন শুধু সেটার ঘরগুলো দেখাবে।</li>
+        <li>Gmail হলে আগে গুগল অ্যাকাউন্টে 2-Step Verification চালু করে একটা App Password বানান, সেটা এখানে দিন।</li>
+        <li><b>Sender</b> ঠিক করুন, তারপর <b>Send a test email</b> দিয়ে পরীক্ষা করুন।</li>
+      </ol>
+      <h3>Spam protection</h3>
+      <p>ফর্মে স্প্যাম আটকাতে: CAPTCHA (Cloudflare Turnstile বা Google reCAPTCHA v3), আর নিজস্ব সুরক্ষা — লুকানো ফাঁদ ঘর, খুব দ্রুত পাঠানো ঠেকানো, লিংকের সংখ্যা সীমা, নিষিদ্ধ শব্দ ও ঠিকানা। উপরে দেখায় এই মাসে কতগুলো আটকানো হয়েছে।</p>
+      <h3>Redirects</h3>
+      <p>পুরোনো ঠিকানা থেকে নতুন ঠিকানায় পাঠানো। <b>Add a redirect</b> দিয়ে from আর to লিখুন (301 স্থায়ী, 302 সাময়িক)। slug বদলালে যেগুলো নিজে তৈরি হয় সেগুলোও এখানে দেখায়।</p>
+    </section>
+
+    <!-- ১৬ -->
+    <section id="design">
+      <h2><span class="no">১৬</span>ডিজাইন: রং, ফন্ট, প্রস্থ</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Settings</span><i>›</i><span>Design</span></span></p>
+      <p>WordPress-এর Customizer-এর মতো — এখানে বদলালে পুরো সাইট, সব সেকশন, হেডার আর ফুটার বদলায়। ডানের <b>Sample</b> কার্ডে সংরক্ষণের আগেই ফল দেখা যায়।</p>
+      <ul>
+        <li><b>Colours:</b> ব্র্যান্ড রং (বোতাম, লিংক, হাইলাইট; হালকা-গাঢ় শেড নিজে থেকে তৈরি হয়), লেখার রং, পাতার পেছনের রং। পড়তে কষ্ট হলে সতর্কবার্তা দেখায়।</li>
+        <li><b>Fonts:</b> শিরোনাম ও মূল লেখার ফন্ট আলাদা। বাংলা সাইটের জন্য <b>Hind Siliguri</b>, <b>Noto Sans Bengali</b>, <b>Noto Serif Bengali</b> বা <b>Tiro Bangla</b> নিন — অন্য ফন্টে বাংলা অক্ষর নেই। <b>Reading text size</b> পোস্টের লেখার আকার।</li>
+        <li><b>Widths:</b> <b>Site width</b> (সাধারণত ১১০০–১২৮০px) আর <b>Single post width</b> (৬৮০–৭৬০px পড়তে আরাম)।</li>
+        <li><b>Corner rounding:</b> বোতাম, ঘর, কার্ডের কোণ চৌকো নাকি গোল।</li>
+      </ul>
+      <p>ডিফল্টে ফিরতে <b>Back to the defaults</b>।</p>
+    </section>
+
+    <!-- ১৭ -->
+    <section id="frontend">
+      <h2><span class="no">১৭</span>ফ্রন্ট এন্ড ও কোড</h2>
+      <p class="where"><b>কোথায়:</b> <span class="path"><span>Settings</span><i>›</i><span>Front end</span></span></p>
+      <h3>Content protection</h3>
+      <p>রাইট-ক্লিক বন্ধ, F12 ও Ctrl+U বন্ধ, লেখা কপি বন্ধ, ছবি টেনে নেওয়া বন্ধ। এগুলো সাধারণ কপি ঠেকায়; দক্ষ কেউ ব্রাউজারের মেনু থেকে তবুও সোর্স দেখতে পারে।</p>
+      <div class="note warn"><strong>পরীক্ষা করবেন কীভাবে</strong><b>Not for people signed in to the panel</b> চালু থাকলে আপনি লগইন অবস্থায় এগুলো দেখবেন না — দর্শকরা ঠিকই সুরক্ষিত। পরীক্ষা করতে প্রাইভেট/ইনকগনিটো উইন্ডোতে সাইট খুলুন।</div>
+      <h3>Site-wide code</h3>
+      <ul>
+        <li><b>Custom CSS:</b> পুরো সাইটের জন্য অতিরিক্ত স্টাইল।</li>
+        <li><b>Head code:</b> Google Analytics, Tag Manager, Meta Pixel, ভেরিফিকেশন ট্যাগ।</li>
+        <li><b>Body code:</b> চ্যাট উইজেট ইত্যাদি যা শেষে লোড হলেই চলে।</li>
+      </ul>
+      <h3>External files</h3>
+      <ol class="steps">
+        <li><span class="ui">+ Stylesheet (CSS)</span> বা <span class="ui">+ Script (JS)</span> চাপুন।</li>
+        <li>ফাইলের পুরো ঠিকানা দিন (<code>https://</code> দিয়ে শুরু), চাইলে একটা নোট।</li>
+        <li>স্ক্রিপ্টের জন্য বেছে নিন কোথায় লোড হবে (head নাকি পাতার শেষে) আর কীভাবে (normal, defer, async)। ↑ ↓ দিয়ে ক্রম ঠিক করুন।</li>
+        <li><span class="ui">Save front end</span>।</li>
+      </ol>
+      <h3>একটা পেজ বা পোস্টের নিজস্ব কোড</h3>
+      <p>পেজ বা পোস্ট এডিটরের <span class="ui">Code</span> ট্যাবে: <b>CSS</b> পাতার head-এ বসে, <b>JavaScript</b> পাতার একদম শেষে চলে। শুধু সেই পাতায় কাজ করে। <code>&lt;script&gt;</code> ট্যাগ লিখতে হয় না।</p>
+      <div class="note warn"><strong>কে পারে</strong>JavaScript, Head/Body code আর External files শুধু <b>Super Admin</b> বদলাতে পারেন, কারণ এগুলো প্রতিটা দর্শকের ব্রাউজারে চলে। অন্যরা CSS বদলাতে পারেন।</div>
+    </section>
+
+    <!-- ১৮ -->
+    <section id="account">
+      <h2><span class="no">১৮</span>নিজের অ্যাকাউন্ট</h2>
+      <p class="where"><b>কোথায়:</b> উপরের ডানে নিজের নাম › <span class="path"><span>My account</span></span></p>
+      <ul>
+        <li><b>Profile:</b> নাম, ইমেইল, ছবি।</li>
+        <li><b>Password:</b> পাসওয়ার্ড বদলানো।</li>
+        <li><b>Two-factor:</b> অথেনটিকেটর অ্যাপ (Google Authenticator, Microsoft Authenticator) বা ইমেইল কোড চালু করুন। চালু করার সময় যে <b>recovery codes</b> দেখায় সেগুলো নিরাপদ জায়গায় রাখুন — ফোন হারালে এগুলো দিয়েই ঢুকবেন।</li>
+        <li><b>Where you are signed in:</b> কোন কোন ডিভাইসে লগইন আছেন, দরকার হলে সব জায়গা থেকে সাইন-আউট।</li>
+      </ul>
+    </section>
+
+    <!-- ১৯ -->
+    <section id="faq">
+      <h2><span class="no">১৯</span>সমস্যা ও সমাধান</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>সমস্যা</th><th>সমাধান</th></tr></thead>
+          <tbody>
+            <tr><td>ফর্মের ইমেইল আসছে না</td><td>Settings › Email-এ প্রোভাইডার “Not set up” থাকলে মেইল শুধু লগ ফাইলে লেখা হয়। প্রোভাইডার বেছে <b>Send a test email</b> দিয়ে পরীক্ষা করুন।</td></tr>
+            <tr><td>রাইট-ক্লিক বন্ধ কাজ করছে না</td><td>আপনি লগইন আছেন আর “Not for people signed in to the panel” চালু। প্রাইভেট উইন্ডোতে দেখুন।</td></tr>
+            <tr><td>বদলানোর পরও পুরোনোটা দেখাচ্ছে</td><td>উপরের <b>Clear cache</b> চাপুন, তারপর ব্রাউজারে <kbd>Ctrl</kbd>+<kbd>F5</kbd>।</td></tr>
+            <tr><td>ভুল করে কিছু মুছে ফেলেছি</td><td>Content › Trash থেকে <b>Restore</b> (৩০ দিনের মধ্যে)।</td></tr>
+            <tr><td>পেজের লেখা ভুল করে বদলে ফেলেছি</td><td>এডিটরের <b>History</b> থেকে আগের ভার্সন <b>Restore this version</b>।</td></tr>
+            <tr><td>হেডার গোলাপি/অদ্ভুত রঙের</td><td>রং ৬ অঙ্কে লিখুন, যেমন <code>#fafafa</code>; ৪ অঙ্কের রং (<code>#fafa</code>) স্বচ্ছ হয়ে যায়।</td></tr>
+            <tr><td>লোগো খুব ছোট বা ঝাপসা</td><td>স্বচ্ছ পটভূমির PNG বা SVG লোগো দিন; হেডারে লোগো প্রায় ৪৪px উঁচু দেখায়।</td></tr>
+            <tr><td>বাংলা লেখা ভেঙে যাচ্ছে</td><td>Settings › Design-এ একটা বাংলা ফন্ট বেছে নিন।</td></tr>
+            <tr><td>পাসওয়ার্ড ভুল দিয়ে লক হয়ে গেছি</td><td>নির্ধারিত সময় (Security › Failed sign-ins) অপেক্ষা করুন, বা সার্ভার থেকে কমান্ড চালান (নিচে)।</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ২০ -->
+    <section id="server">
+      <h2><span class="no">২০</span>সার্ভার কমান্ড</h2>
+      <p>এগুলো সার্ভারে (টার্মিনালে) প্রজেক্টের ফোল্ডার থেকে চালাতে হয় — ওয়েব থেকে নয়। নিজেকে আটকে ফেললে কাজে লাগে।</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>কমান্ড</th><th>কী করে</th></tr></thead>
+          <tbody>
+            <tr><td><code>php artisan security:unlock</code></td><td>Admin IP rules, Always use HTTPS ও HSTS বন্ধ করে (নিয়মগুলো মুছে না)</td></tr>
+            <tr><td><code>php artisan security:reset-2fa ইমেইল</code></td><td>ফোন হারালে সেই অ্যাকাউন্টের টু-ফ্যাক্টর বন্ধ করে</td></tr>
+            <tr><td><code>php artisan trash:purge</code></td><td>৩০ দিনের বেশি পুরোনো ট্র্যাশ স্থায়ীভাবে মুছে (Trash পাতা খুললেও এটা নিজে থেকে হয়)</td></tr>
+            <tr><td><code>php artisan media:optimise</code></td><td>পুরোনো ছবিগুলোর ছোট WebP কপি তৈরি করে</td></tr>
+            <tr><td><code>php artisan media:local-urls</code></td><td>ডোমেইন বদলালে পুরোনো ঠিকানার ছবির লিংক ঠিক করে</td></tr>
+            <tr><td><code>php artisan migrate</code></td><td>নতুন আপডেটের পর ডেটাবেস হালনাগাদ করে</td></tr>
+            <tr><td><code>npm run build</code></td><td>ডিজাইন বা স্ক্রিপ্ট বদলের পর ফাইলগুলো আবার তৈরি করে</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="foot">এই গাইড সাইটের বর্তমান সংস্করণ অনুযায়ী লেখা। প্যানেলে নতুন কিছু যোগ হলে এখানেও যোগ হবে।</p>
+  </main>
+</div>

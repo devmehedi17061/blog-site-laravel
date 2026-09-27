@@ -1,0 +1,68 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Design tokens — the Modernist palette from the mockup, retuned so the
+   panel reads at the density and calm of a production admin.
+
+   The three border tiers are the important part: before, everything was a
+   2px black outline, so nothing had rank. Now an edge, a divider and an
+   emphasis line are three different things.
+   ══════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* — surfaces — content sits on white above a warm grey page — */
+  --color-bg: #f2f1f1;
+  --color-surface: #ffffff;
+  --color-muted: #f7f6f6;
+  --color-ink: #1c1a19;
+
+  /* — borders, in rank order — */
+  --color-line: #e5e2e2;
+  --color-line-strong: #cfcbcb;
+  --color-line-heavy: #201e1d;
+  --color-divider: #e5e2e2;
+
+  /* — neutrals — one shared lightness scale — */
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
+  --color-neutral-950: #201e1d;
+
+  /* — accent — */
+  --color-accent: #ec3013;
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
+
+  --color-accent2: #e15b47;
+  --color-accent2-100: #fff2ef;
+  --color-accent2-800: #71261b;
+
+  /* — status — */
+  --color-success-100: #e9f7ef;
+  --color-success-800: #1c6b3f;
+  --color-warning-100: #fdf3e2;
+  --color-warning-800: #8a5a00;
+
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-heading: "Archivo", system-ui, sans-serif;
+
+  /* The system stays square — that is the mockup's signature. */
+  --radius-none: 0px;
+
+  /* Elevation is soft and ink-tinted; it separates layers without drawing
+     another line around everything. */
+  --shadow-xs: 0 1px 1px rgba(28, 26, 25, 0.04);
+  --shadow-sm: 0 1px 2px rgba(28, 26, 25, 0.06), 0 1px 1px rgba(28, 26, 25, 0.04);
+  --shadow-md: 0 2px 4px rgba(28, 26, 25, 0.06), 0 4px 12px rgba(28, 26, 25, 0.06);
+  --shadow-lg: 0 8px 20px rgba(28, 26, 25, 0.10), 0 16px 40px rgba(28, 26, 25, 0.08);
+}

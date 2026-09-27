@@ -1,0 +1,113 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Shared post-content rules.
+
+     `.rich-content` is on the editor's writing surface AND on the public
+     post body, so spacing, image sizes and alignment cannot drift apart
+     between what the writer sees and what a reader gets.
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* Spacing is a custom property, so the `spacing-*` class works whether it
+     sits on the content element itself (public page) or on a wrapper
+     (the editor, where TipTap owns the inner element's class). */
+  .spacing-tight { --content-gap: 0.3em; }
+  .spacing-normal { --content-gap: 1.05em; }
+  .spacing-loose { --content-gap: 1.9em; }
+
+  .rich-content > * + * { margin-top: var(--content-gap, 1.05em); }
+
+  .rich-content h2 { margin-top: calc(var(--content-gap, 1.05em) * 1.5); }
+  .rich-content h3 { margin-top: calc(var(--content-gap, 1.05em) * 1.3); }
+  .rich-content h4 { margin-top: calc(var(--content-gap, 1.05em) * 1.15); }
+
+  /* Floated images are pulled out of flow; without this the next block can
+     ride up beside them and the post ends mid-float. */
+  .rich-content::after { content: ''; display: table; clear: both; }
+
+  /* ── figures ──────────────────────────────────────────────────────── */
+  .post-figure {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .post-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .post-figure figcaption {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-neutral-600);
+  }
+
+  .post-figure.is-small { width: 25%; }
+  .post-figure.is-medium { width: 50%; }
+  .post-figure.is-large { width: 75%; }
+  .post-figure.is-full { width: 100%; }
+
+  .post-figure.align-center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .post-figure.align-center figcaption { text-align: center; }
+
+  .post-figure.align-left {
+    float: left;
+    margin: 0.35em 1.6em 1em 0;
+  }
+
+  .post-figure.align-right {
+    float: right;
+    margin: 0.35em 0 1em 1.6em;
+  }
+
+  /* A 25% float is unreadable on a phone — let every image go full width. */
+  @media (max-width: 640px) {
+    .post-figure.is-small,
+    .post-figure.is-medium,
+    .post-figure.is-large {
+      width: 100%;
+    }
+
+    .post-figure.align-left,
+    .post-figure.align-right {
+      float: none;
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Public page sections.
+
+     Deliberately almost empty: each section carries its own CSS, scoped to
+     its own id and printed in the page head, and its box settings arrive as
+     an inline style. Anything opinionated here would fight the author.
+
+     The one structural rule is the pair: `.site-section` is a full-width
+     band, so a background reaches both edges of the window, and
+     `.site-section-inner` is the column the words sit in, held to whatever
+     max width the section was given.
+     ══════════════════════════════════════════════════════════════════ */
+  .page-article { width: 100%; max-width: 100%; }
+
+  /* A page with no sections has nothing to say; the notice in its place
+     still keeps the site's usual column. */
+  .page-notice {
+    width: 100%;
+    max-width: var(--site-width);
+    margin: 0 auto;
+    padding: 40px 16px 8px;
+  }
+
+  .site-section { box-sizing: border-box; width: 100%; }
+  .site-section-inner { box-sizing: border-box; }
+  .site-section-inner > :first-child { margin-top: 0; }
+  .site-section-inner > :last-child { margin-bottom: 0; }
+}

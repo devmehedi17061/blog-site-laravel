@@ -1,0 +1,241 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     The form inbox.
+
+     Three columns: which form, the list, and the one being read — the shape
+     people already know from a mail client, because it is the same job.
+     ══════════════════════════════════════════════════════════════════ */
+  .inbox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    min-height: 560px;
+    background: var(--color-line-strong);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .inbox-forms,
+  .inbox-list,
+  .inbox-reader {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--color-surface);
+  }
+
+  .inbox-forms { flex: 1 1 190px; }
+  .inbox-list { flex: 2 1 320px; }
+  .inbox-reader { flex: 2.2 1 340px; }
+
+  /* ── which form ─────────────────────────────────────────────────────── */
+  .inbox-form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-left: 3px solid transparent;
+    font-size: 13px;
+    color: var(--color-ink);
+    transition: background 110ms ease;
+  }
+
+  .inbox-form-row:hover { background: var(--color-accent-100); }
+  .inbox-form-row.is-active { border-left-color: var(--color-accent); background: var(--color-accent-100); }
+
+  .inbox-count {
+    margin-left: auto;
+    min-width: 20px;
+    padding: 1px 6px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .inbox-unread-pill {
+    padding: 4px 10px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+    box-shadow: inset 0 0 0 1px var(--color-accent-200);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* ── the list ───────────────────────────────────────────────────────── */
+  .inbox-bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    padding: 6px 10px;
+    background: var(--color-accent-100);
+    border-bottom: 1px solid var(--color-line-strong);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-accent-800);
+  }
+
+  .inbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+    padding-right: 4px;
+    border-bottom: 1px solid var(--color-line);
+    border-left: 3px solid transparent;
+    background: var(--color-muted);
+    transition: background 110ms ease;
+  }
+
+  .inbox-row:hover { background: var(--color-accent-100); }
+
+  /* Unread is the one that looks like a real message; read recedes. */
+  .inbox-row.is-unread { background: var(--color-surface); }
+  .inbox-row.is-open { border-left-color: var(--color-accent); background: var(--color-accent-100); }
+
+  .inbox-row-check { flex: none; padding: 12px 4px 0 10px; }
+
+  .inbox-row-main {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 6px 10px;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border: 0;
+  }
+
+  .inbox-row-top { display: flex; align-items: baseline; gap: 8px; }
+
+  .inbox-row-form {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-accent-700);
+  }
+
+  .inbox-row-date {
+    margin-left: auto;
+    flex: none;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-neutral-500);
+  }
+
+  .inbox-row-summary {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+
+  .is-unread .inbox-row-summary { font-weight: 700; color: var(--color-ink); }
+
+  .inbox-row-preview {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--color-neutral-600);
+  }
+
+  .inbox-row-actions { display: flex; flex: none; gap: 1px; padding-top: 9px; }
+
+  .inbox-row-actions button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: 12px;
+    color: var(--color-neutral-600);
+    transition: all 110ms ease;
+  }
+
+  .inbox-row-actions button:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  /* ── the one being read ─────────────────────────────────────────────── */
+  .inbox-reader-empty {
+    display: grid;
+    place-items: center;
+    flex: 1;
+    padding: 24px;
+    font-size: 13px;
+    color: var(--color-neutral-600);
+  }
+
+  .inbox-reader-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: none;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--color-line-strong);
+    background: var(--color-muted);
+  }
+
+  .inbox-reader-title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 15px;
+    line-height: 1.35;
+    color: var(--color-ink);
+  }
+
+  .inbox-reader-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--color-neutral-600);
+  }
+
+  .inbox-reader-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; }
+
+  .inbox-reader-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    padding: 10px 14px;
+    border-top: 1px solid var(--color-line);
+    background: var(--color-muted);
+  }
+
+  /* On a phone the three columns stack, and the reader is the tall one. */
+  @media (max-width: 900px) {
+    .inbox { min-height: 0; }
+    .inbox-forms,
+    .inbox-list,
+    .inbox-reader { flex: 1 1 100%; }
+    .inbox-reader { min-height: 320px; }
+  }
+}

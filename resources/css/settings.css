@@ -1,0 +1,343 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Settings. Tabs across the top, then stacked panels, each with a head
+     that says what the panel is for, and a save bar that stays in reach.
+     ══════════════════════════════════════════════════════════════════ */
+  .settings-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 4px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .settings-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-neutral-700);
+    transition: background 110ms ease, color 110ms ease;
+  }
+
+  .settings-tab:hover { background: var(--color-muted); color: var(--color-ink); }
+
+  .settings-tab.is-active {
+    background: var(--color-accent-100);
+    border-color: var(--color-accent-200);
+    color: var(--color-accent-800);
+  }
+
+  .settings-tab-icon { display: grid; place-items: center; }
+
+  .settings-stack { display: flex; flex-direction: column; gap: 18px; }
+
+  .settings-panel-head {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .settings-panel-head h3 { margin: 0; font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--color-ink); }
+  .settings-panel-head p { margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: var(--color-neutral-600); }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px 20px;
+    align-items: start;
+  }
+
+  .settings-grid-full { grid-column: 1 / -1; }
+
+  /* Four switches read best as two by two, never three and one. */
+  .settings-grid-pairs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+  @media (min-width: 900px) { .settings-grid-pairs { grid-template-columns: 1fr 1fr; } }
+
+  .settings-callout {
+    padding: 11px 14px;
+    background: var(--color-warning-100);
+    border-left: 3px solid var(--color-warning-800);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-warning-800);
+  }
+
+  .settings-steps {
+    padding: 12px 16px;
+    background: var(--color-muted);
+    border-left: 3px solid var(--color-accent);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-neutral-800);
+  }
+
+  .settings-steps ol { margin: 6px 0 0; padding-left: 20px; }
+  .settings-steps a { color: var(--color-accent-700); font-weight: 600; }
+
+  /* ── which mail provider ──────────────────────────────────────────── */
+  .provider-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+  }
+
+  .provider-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    cursor: pointer;
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    transition: border-color 110ms ease, background 110ms ease, box-shadow 110ms ease;
+  }
+
+  .provider-card:hover:not(:disabled) { border-color: var(--color-neutral-400); }
+  .provider-card:disabled { cursor: default; }
+
+  .provider-card.is-active {
+    background: var(--color-accent-100);
+    border-color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+
+  .provider-mono {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-bottom: 4px;
+    background: var(--color-neutral-900);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .provider-card.is-active .provider-mono { background: var(--color-accent); }
+  .provider-label { font-size: 14px; font-weight: 700; color: var(--color-ink); }
+  .provider-summary { font-size: 12px; line-height: 1.45; color: var(--color-neutral-600); }
+
+  /* Two or three choices side by side, as one control. */
+  .segmented { display: flex; flex-wrap: wrap; border: 1px solid var(--color-line-strong); }
+
+  .segmented label {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-neutral-700);
+    background: var(--color-surface);
+  }
+
+  .segmented label + label { border-left: 1px solid var(--color-line-strong); }
+  .segmented label.is-active { background: var(--color-accent-100); color: var(--color-accent-800); }
+  .segmented input { accent-color: var(--color-accent); }
+
+  .test-result {
+    flex-basis: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .test-result.is-ok { background: var(--color-success-100); border-left: 3px solid var(--color-success-800); color: var(--color-success-800); }
+  .test-result.is-neutral { background: var(--color-muted); border-left: 3px solid var(--color-neutral-500); color: var(--color-neutral-800); }
+  .test-result.is-bad { background: var(--color-accent-100); border-left: 3px solid var(--color-accent); color: var(--color-accent-800); }
+
+  /* An image setting: what is chosen now, on the background it will sit on. */
+  .image-well {
+    display: grid;
+    place-items: center;
+    height: 72px;
+    padding: 8px;
+    overflow: hidden;
+    background: repeating-conic-gradient(var(--color-neutral-100) 0 25%, #fff 0 50%) 0 0 / 14px 14px;
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .image-well.is-dark { background: var(--color-neutral-900); }
+
+  /* In pixels, not 100%: a percentage height inside a grid cell has nothing
+     to measure against, so a large photo would show at full size and spill
+     over the buttons and the section below. 56px = the well less padding. */
+  .image-well img { display: block; width: auto; height: auto; max-width: 100%; max-height: 56px; object-fit: contain; }
+
+  /* A toggle with its label and a line saying what it does. */
+  .switch-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    background: var(--color-muted);
+    border: 1px solid var(--color-line);
+  }
+
+  .switch-row.is-warning { background: var(--color-warning-100); border-color: #f3e2c4; }
+  .switch-row strong { display: block; font-size: 13px; color: var(--color-ink); }
+  .switch-row span span { display: block; margin-top: 2px; font-size: 12px; line-height: 1.5; color: var(--color-neutral-600); }
+
+  .switch {
+    appearance: none;
+    position: relative;
+    flex: none;
+    width: 38px;
+    height: 22px;
+    margin: 1px 0 0;
+    cursor: pointer;
+    background: var(--color-neutral-400);
+    border-radius: 999px;
+    transition: background 140ms ease;
+  }
+
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 140ms ease;
+  }
+
+  .switch:checked { background: var(--color-accent); }
+  .switch:checked::after { transform: translateX(16px); }
+  .switch:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .switch:disabled { cursor: not-allowed; opacity: .6; }
+
+  /* A textarea for code: monospaced, tall, no wrapping surprises. */
+  .code-box {
+    min-height: 170px !important;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12.5px !important;
+    line-height: 1.55;
+    tab-size: 2;
+    white-space: pre;
+  }
+
+  .code-box[readonly] { background: var(--color-muted); color: var(--color-neutral-700); }
+
+  /* ── spam: what was stopped ─────────────────────────────────────────── */
+  .spam-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .spam-total {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 120px;
+    padding: 10px 16px;
+    background: var(--color-neutral-900);
+    color: var(--color-neutral-300);
+    font-size: 12px;
+  }
+
+  .spam-total-number { font-family: var(--font-heading); font-size: 28px; font-weight: 800; line-height: 1.1; color: #fff; }
+
+  .spam-reason {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 140px;
+    flex: 1 1 140px;
+    padding: 10px 14px;
+    background: var(--color-muted);
+    border: 1px solid var(--color-line);
+    font-size: 12px;
+    color: var(--color-neutral-700);
+  }
+
+  .spam-reason-count { font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--color-accent-700); }
+  .spam-reason.is-zero .spam-reason-count { color: var(--color-neutral-400); }
+
+  .settings-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: 0 -2px 10px rgba(28, 26, 25, 0.06);
+  }
+
+  /* ══ Settings → Design ═══════════════════════════════════════════════ */
+  .design-layout { display: flex; align-items: flex-start; gap: 20px; }
+
+  .design-color { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; }
+
+  .design-swatch {
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    border: 1px solid rgb(0 0 0 / 0.15);
+    transition: transform 100ms ease;
+  }
+  .design-swatch:hover:not(:disabled) { transform: scale(1.12); }
+  .design-swatch.is-on { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+  .design-picker { width: 34px; height: 32px; padding: 2px; cursor: pointer; background: var(--color-surface); border: 1px solid var(--color-line-strong); }
+
+  .design-contrast { margin: 0; padding: 9px 12px; font-size: 12px; color: var(--color-warning-800); background: var(--color-warning-100); border-left: 3px solid #d99a1e; }
+
+  .design-font-sample { margin: 8px 0 0; padding: 10px 12px; font-size: 17px; line-height: 1.4; color: var(--color-ink); background: var(--color-muted); border: 1px solid var(--color-line); }
+
+  .design-range { width: 100%; accent-color: var(--color-accent); }
+
+  .design-widths { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0 8px; background: var(--color-muted); border: 1px dashed var(--color-line-strong); }
+  .design-widths > div { display: flex; align-items: center; justify-content: center; height: 26px; max-width: 100%; font-size: 11px; font-weight: 600; transition: width 150ms ease; }
+  .design-widths-site { color: var(--color-accent-800); background: var(--color-accent-100); border: 1px solid var(--color-accent-300); }
+  .design-widths-post { color: #fff; background: var(--color-neutral-800); }
+  .design-widths-screen { width: 100%; height: auto !important; font-weight: 400 !important; color: var(--color-neutral-500); }
+
+  /* The sample card: the site's look, drawn from the unsaved choices. */
+  .design-sample-wrap { position: sticky; top: 12px; flex: none; width: 340px; background: var(--color-surface); border: 1px solid var(--color-line-strong); }
+  .design-sample-head { padding: 9px 12px; font-family: var(--font-heading); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--color-neutral-900); }
+
+  .design-sample { display: flex; flex-direction: column; gap: 12px; padding: 22px 20px; font-family: var(--ds-body); color: var(--ds-text); background: var(--ds-bg); }
+  .design-sample-kicker { font-family: var(--ds-heading); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-primary); }
+  .design-sample-title { margin: 0; font-family: var(--ds-heading); font-size: 24px; font-weight: 800; line-height: 1.2; color: var(--ds-text); }
+  .design-sample-text { margin: 0; font-size: var(--ds-size); line-height: 1.65; opacity: 0.85; }
+  .design-sample-text a { color: var(--ds-primary); }
+  .design-sample-btn { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; font-family: var(--ds-heading); font-size: 13px; font-weight: 700; color: #fff; background: var(--ds-primary); border: 2px solid var(--ds-primary); border-radius: var(--ds-radius); }
+  .design-sample-btn.is-outline { color: var(--ds-primary); background: transparent; }
+  .design-sample-card { display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #fff; border: 1px solid rgb(0 0 0 / 0.1); border-radius: var(--ds-radius); }
+  .design-sample-card strong { font-family: var(--ds-heading); font-size: 16px; color: var(--ds-text); }
+  .design-sample-chip { align-self: flex-start; padding: 2px 8px; font-size: 11px; font-weight: 700; color: var(--ds-primary); background: color-mix(in srgb, var(--ds-primary) 10%, #fff); border-radius: var(--ds-radius); }
+  .design-sample-muted { font-size: 12px; opacity: 0.6; }
+
+  @media (max-width: 1100px) {
+    .design-layout { flex-direction: column-reverse; align-items: stretch; }
+    .design-sample-wrap { position: static; width: 100%; }
+  }
+
+  /* ══ Front end → External files ══════════════════════════════════════ */
+  .ext-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--color-muted); border: 1px solid var(--color-line); }
+  .ext-type { flex: none; display: grid; place-items: center; width: 40px; height: 36px; font-family: var(--font-heading); font-size: 11px; font-weight: 800; color: #fff; }
+  .ext-type.is-css { background: #2563eb; }
+  .ext-type.is-js { background: #b58500; }
+  .ext-main { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
+  .ext-options { display: flex; flex-wrap: wrap; gap: 6px; }
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="A rising growth chart">
+  <defs>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22d3ee" stop-opacity=".55"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></linearGradient>
+  </defs>
+  <circle cx="110" cy="100" r="60" fill="#ffffff" opacity=".1"/>
+  <rect x="96" y="80" width="448" height="320" rx="22" fill="#ffffff"/>
+  <rect x="128" y="112" width="140" height="12" rx="6" fill="#1e1b4b"/>
+  <rect x="128" y="134" width="90" height="9" rx="4.5" fill="#c7d2fe"/>
+  <rect x="424" y="110" width="88" height="30" rx="15" fill="#ecfeff"/>
+  <text x="440" y="131" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#0e7490">▲ 32%</text>
+  <g stroke="#eef2ff" stroke-width="2"><path d="M128 190h384M128 240h384M128 290h384M128 340h384"/></g>
+  <path d="M128 330 C 180 320 200 290 250 292 S 330 250 370 236 S 450 180 512 164 V 360 H 128 Z" fill="url(#area)"/>
+  <path d="M128 330 C 180 320 200 290 250 292 S 330 250 370 236 S 450 180 512 164" fill="none" stroke="#0891b2" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="512" cy="164" r="10" fill="#ffffff" stroke="#0891b2" stroke-width="5"/>
+  <rect x="404" y="286" width="160" height="92" rx="16" fill="#1e1b4b"/>
+  <circle cx="436" cy="318" r="14" fill="#6366f1"/>
+  <rect x="460" y="308" width="80" height="9" rx="4.5" fill="#a5b4fc"/>
+  <rect x="460" y="324" width="52" height="8" rx="4" fill="#4f46e5"/>
+  <text x="424" y="362" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">2,480 leads</text>
+</svg>

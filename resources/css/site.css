@@ -1,0 +1,63 @@
+/* Settings → Design sets these on :root (frontend/partials/design); these
+   are the defaults for anywhere that does not print it. */
+:root {
+  --site-width: 1100px;
+  --content-width: 720px;
+  --site-text-size: 16px;
+  --site-radius: 0px;
+}
+
+@layer components {
+  /* Settings → Design: corner rounding, public site only (.site-body). */
+  .site-body .btn,
+  .site-body .input,
+  .site-body .sp-search input,
+  .site-body .sp-search button,
+  .site-body .cms-form input,
+  .site-body .cms-form select,
+  .site-body .cms-form textarea,
+  .site-body .cms-form button,
+  .site-body .category-chip,
+  .site-body .post-card { border-radius: var(--site-radius); }
+
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Public site pieces driven by Settings → Site: the logo, the contact
+     block and the social row in the footer.
+     ══════════════════════════════════════════════════════════════════ */
+  /* The header (and any preview / maintenance bar above it) stays at the
+     top of the screen while the page scrolls — unless the header builder
+     turns "sticky" off, which adds is-static. */
+  .site-top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .site-top.is-static { position: relative; }
+
+  /* A link to a heading further down lands below the pinned header, not
+     under it. */
+  html:has(.site-top:not(.is-static) header) { scroll-padding-top: 96px; }
+
+  .site-logo { display: block; width: auto; height: auto; max-height: 44px; max-width: 220px; }
+
+  .site-contact { display: flex; flex-direction: column; gap: 4px; line-height: 1.5; }
+  .site-contact a { color: var(--color-neutral-300); text-decoration: none; }
+  .site-contact a:hover { color: #fff; text-decoration: underline; }
+
+  .site-social { display: flex; gap: 8px; }
+
+  .site-social a {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    color: var(--color-neutral-300);
+    border: 1px solid var(--color-neutral-700);
+    transition: color 110ms ease, border-color 110ms ease, background 110ms ease;
+  }
+
+  .site-social a:hover,
+  .site-social a:focus-visible { color: #fff; border-color: var(--color-accent); background: var(--color-accent); }
+}

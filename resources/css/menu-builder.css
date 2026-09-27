@@ -1,0 +1,316 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Menu control.
+
+     Three columns: which menu, the tree, and the row being edited. The tree
+     is a flat list — nesting is shown by indentation and a rail, which is
+     what makes a row draggable to anywhere without the markup having to be
+     torn apart and rebuilt.
+     ══════════════════════════════════════════════════════════════════ */
+  .menu-builder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    min-height: 540px;
+    background: var(--color-line-strong);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .menu-locations,
+  .menu-tree,
+  .menu-editor {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--color-surface);
+  }
+
+  .menu-locations { flex: 1 1 190px; }
+  .menu-tree { flex: 2.4 1 360px; }
+  .menu-editor { flex: 1.6 1 280px; }
+
+  /* ── which menu ─────────────────────────────────────────────────────── */
+  .menu-location-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-left: 3px solid transparent;
+    font-size: 13px;
+    color: var(--color-ink);
+    transition: background 110ms ease;
+  }
+
+  .menu-location-row:hover { background: var(--color-accent-100); }
+  .menu-location-row.is-active { border-left-color: var(--color-accent); background: var(--color-accent-100); }
+
+  .menu-location-hint { font-size: 11px; color: var(--color-neutral-600); }
+
+  .menu-locations-note {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid var(--color-line);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--color-neutral-600);
+  }
+
+  /* ── the tree ───────────────────────────────────────────────────────── */
+  .menu-row {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    /* The indent is the whole picture of the nesting. */
+    padding-left: calc(var(--menu-depth, 0) * 26px);
+    border-bottom: 1px solid var(--color-line);
+    border-left: 3px solid transparent;
+    background: var(--color-surface);
+    transition: background 110ms ease, border-color 110ms ease;
+  }
+
+  .menu-row:hover { background: var(--color-accent-100); }
+  .menu-row.is-active { border-left-color: var(--color-accent); background: var(--color-accent-100); }
+  .menu-row.has-error { border-left-color: var(--color-accent-700); }
+
+  /* Where the dragged row would land. */
+  .menu-row.is-drop { box-shadow: inset 0 2px 0 var(--color-accent); }
+
+  .menu-row-grip {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 22px;
+    cursor: grab;
+    color: var(--color-neutral-400);
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .menu-row-grip:active { cursor: grabbing; }
+
+  .menu-row-main {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 6px 9px 0;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border: 0;
+  }
+
+  .menu-row-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  /* A nested row gets a rail back to its parent, so which one it belongs to
+     is readable without counting pixels. */
+  .menu-row[style*="--menu-depth:1"] .menu-row-label::before,
+  .menu-row[style*="--menu-depth:2"] .menu-row-label::before {
+    content: '';
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-right: 1px;
+    border-left: 1px solid var(--color-line-strong);
+    border-bottom: 1px solid var(--color-line-strong);
+    transform: translateY(-3px);
+  }
+
+  .menu-row-icon { display: grid; place-items: center; flex: none; color: var(--color-accent-700); }
+
+  .menu-row-kids {
+    flex: none;
+    min-width: 17px;
+    padding: 0 5px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .menu-row-meta {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    color: var(--color-neutral-600);
+  }
+
+  .menu-row-error {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-accent-700);
+  }
+
+  .menu-row-actions { display: flex; flex: none; gap: 1px; padding: 7px 4px 0 0; }
+
+  .menu-row-actions button {
+    display: grid;
+    place-items: center;
+    width: 23px;
+    height: 23px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: 12px;
+    color: var(--color-neutral-600);
+    transition: all 110ms ease;
+  }
+
+  .menu-row-actions button:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .menu-row-actions button:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  /* ── the row being edited ───────────────────────────────────────────── */
+  .menu-icon-preview {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+    box-shadow: inset 0 0 0 1px var(--color-accent-200);
+  }
+
+  .menu-icon-preview.is-empty {
+    background: var(--color-muted);
+    color: var(--color-neutral-500);
+    box-shadow: inset 0 0 0 1px var(--color-line-strong);
+  }
+
+  .menu-editor-depth {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-line);
+    font-size: 12px;
+    color: var(--color-neutral-600);
+  }
+
+  /* ── the icon grid ──────────────────────────────────────────────────── */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 6px;
+  }
+
+  .icon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 4px 8px;
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-ink);
+    transition: all 110ms ease;
+  }
+
+  .icon-cell:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+  }
+
+  .icon-cell-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    color: var(--color-neutral-600);
+  }
+
+  /* ── the link picker ────────────────────────────────────────────────── */
+  .link-group + .link-group { margin-top: 14px; }
+
+  .link-group-head {
+    margin-bottom: 4px;
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-neutral-600);
+  }
+
+  .link-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    font-size: 13px;
+    color: var(--color-ink);
+    transition: all 110ms ease;
+  }
+
+  .link-row + .link-row { border-top: 0; }
+  .link-row:hover { border-color: var(--color-accent); background: var(--color-accent-100); }
+
+  .link-row-url {
+    margin-left: auto;
+    flex: none;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    color: var(--color-neutral-600);
+  }
+
+  @media (max-width: 900px) {
+    .menu-builder { min-height: 0; }
+    .menu-locations,
+    .menu-tree,
+    .menu-editor { flex: 1 1 100%; }
+  }
+
+  /* ── categories ─────────────────────────────────────────────────────── */
+  .category-row-thumb {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .delete-impact {
+    margin: 0;
+    padding: 10px 12px;
+    list-style: none;
+    background: var(--color-muted);
+    border-left: 3px solid var(--color-accent-300);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--color-neutral-700);
+  }
+}

@@ -1,0 +1,128 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     The public navigation.
+
+     Three levels, no JavaScript. Sub-menus open on hover *and* on
+     :focus-within, so someone tabbing through reaches the deeper levels the
+     same way a mouse does — a hover-only menu is invisible to a keyboard.
+     ══════════════════════════════════════════════════════════════════ */
+  .menu-icon { flex: none; display: block; }
+
+  .site-menu { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+
+  .site-menu-node { position: relative; }
+
+  .site-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 110ms ease, color 110ms ease;
+  }
+
+  /* ── the top bar ────────────────────────────────────────────────────── */
+  .site-menu-top-link {
+    padding: 8px 12px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-neutral-700);
+  }
+
+  .site-menu-top-link:hover,
+  .site-menu-top-link:focus-visible {
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+  }
+
+  .site-menu-caret { display: inline-grid; place-items: center; font-size: 9px; color: var(--color-neutral-500); transition: transform 160ms ease; }
+  .site-menu-caret svg { display: block; }
+
+  /* The arrow turns while its sub-menu is open (hover, or keyboard focus). */
+  .site-menu-top:hover > a .site-menu-caret,
+  .site-menu-top:focus-within > a .site-menu-caret { transform: rotate(180deg); }
+  .site-menu-top:hover > a .site-menu-caret[data-caret="plus"],
+  .site-menu-top:focus-within > a .site-menu-caret[data-caret="plus"] { transform: rotate(45deg); }
+
+  @media (prefers-reduced-motion: reduce) { .site-menu-caret { transition: none; } }
+
+  /* ── the panels below it ────────────────────────────────────────────── */
+  .site-menu-panel {
+    position: absolute;
+    z-index: 30;
+    display: none;
+    min-width: 200px;
+    padding: 4px 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* The second level drops below its parent; the third flies out sideways. */
+  .site-menu-top > .site-menu-panel { top: 100%; left: 0; }
+  .site-menu-panel .site-menu-panel { top: -5px; left: 100%; }
+
+  .site-menu-node:hover > .site-menu-panel,
+  .site-menu-node:focus-within > .site-menu-panel { display: block; }
+
+  .site-menu-panel .site-menu-link {
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+
+  .site-menu-panel .site-menu-link:hover,
+  .site-menu-panel .site-menu-link:focus-visible {
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+  }
+
+  .site-menu-text { flex: 1; min-width: 0; }
+  .site-menu-more { flex: none; font-size: 13px; color: var(--color-neutral-500); }
+
+  /* How the menu folds on a phone is up to each header's own CSS (Builders
+     → Header & footer); the starters stack it inside their ☰ panel. */
+
+  /* ── the footer strip ───────────────────────────────────────────────── */
+  .site-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-neutral-300);
+    text-decoration: none;
+    transition: color 110ms ease;
+  }
+
+  .site-footer-link:hover { color: #fff; }
+
+  /* ── category chips on the blog ─────────────────────────────────────── */
+  .chip-nested { padding-left: 8px; color: var(--color-neutral-600); }
+  .chip-nest-mark { margin-right: 3px; color: var(--color-neutral-400); }
+
+  .category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-ink);
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 110ms ease;
+  }
+
+  .category-chip:hover { border-color: var(--color-accent); color: var(--color-accent-800); }
+
+  .category-chip-count {
+    min-width: 18px;
+    padding: 0 5px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+}

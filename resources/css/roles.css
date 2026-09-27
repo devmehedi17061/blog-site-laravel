@@ -1,0 +1,132 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Roles & permissions.
+
+     The role list reuses the menu builder's columns and rows. What is new
+     here is the matrix: one row per module, one column per ability, and a
+     header toggle on every row, column and group so a whole block can be
+     granted in one click.
+     ══════════════════════════════════════════════════════════════════ */
+  .role-lock {
+    flex: none;
+    padding: 0 5px;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-700);
+    box-shadow: inset 0 0 0 1px var(--color-neutral-300);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .role-note {
+    padding: 9px 11px;
+    background: var(--color-muted);
+    border-left: 3px solid var(--color-neutral-400);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-neutral-700);
+  }
+
+  .perm-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .perm-matrix th,
+  .perm-matrix td {
+    padding: 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .perm-matrix thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--color-muted);
+    border-bottom: 1px solid var(--color-line-strong);
+  }
+
+  .perm-matrix .perm-module { width: 100%; text-align: left; }
+
+  .perm-group-row th {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-line-strong);
+  }
+
+  /* Every header is a button: flips the row, column or group it names. */
+  .perm-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 34px;
+    padding: 0 10px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+    white-space: nowrap;
+  }
+
+  .perm-head:hover:not(:disabled) { background: var(--color-accent-100); color: var(--color-accent-800); }
+  .perm-head:disabled { cursor: default; }
+
+  .perm-module .perm-head {
+    justify-content: flex-start;
+    padding-left: 12px;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-ink);
+  }
+
+  .perm-group-row .perm-head {
+    justify-content: flex-start;
+    padding-left: 12px;
+    color: var(--color-accent-700);
+  }
+
+  /* A small tri-state box beside each header: none, some, all. */
+  .perm-state {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--color-neutral-400);
+    background: var(--color-surface);
+  }
+
+  .perm-state[data-state="some"] { background: linear-gradient(135deg, var(--color-accent) 50%, var(--color-surface) 50%); border-color: var(--color-accent); }
+  .perm-state[data-state="all"] { background: var(--color-accent); border-color: var(--color-accent); }
+
+  .perm-cell {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-width: 64px;
+    height: 36px;
+    cursor: pointer;
+  }
+
+  .perm-cell:hover:not(.is-disabled) { background: var(--color-accent-100); }
+  .perm-cell.is-disabled { cursor: not-allowed; }
+
+  .perm-cell input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: inherit;
+    accent-color: var(--color-accent);
+  }
+
+  /* A permission this person does not hold, and so cannot hand out. */
+  .perm-cell.is-beyond { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--color-neutral-100) 5px 10px); }
+}

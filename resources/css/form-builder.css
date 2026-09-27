@@ -1,0 +1,87 @@
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════════════
+     The form builder.
+
+     Reuses the section builder's shell — .builder, .builder-grid,
+     .section-row — so the two builders feel like one tool. Only what is
+     specific to fields and submissions lives here.
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* ── the palette of field types ─────────────────────────────────────── */
+  .type-palette { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px 0 6px;
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    font-size: 12px;
+    color: var(--color-ink);
+    transition: all 110ms ease;
+  }
+
+  .type-chip:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-100);
+  }
+
+  .type-chip-mono,
+  .type-mono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .type-chip:hover .type-chip-mono { background: var(--color-accent); color: #fff; }
+
+  /* ── the preview ────────────────────────────────────────────────────── */
+  /* Deliberately thin: everything inside carries the public .cms-* classes,
+     from the same stylesheet the published form uses. */
+  .form-preview { pointer-events: none; }
+  .form-preview .cms-input:disabled,
+  .form-preview .cms-form-submit:disabled { opacity: 1; cursor: default; }
+
+  /* ── one submission ─────────────────────────────────────────────────── */
+  .answer-list { display: flex; flex-direction: column; margin: 0; }
+
+  .answer-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 34%) 1fr;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .answer-row:last-child { border-bottom: 0; }
+
+  .answer-row dt {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--color-neutral-700);
+  }
+
+  .answer-row dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-ink);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 560px) {
+    .answer-row { grid-template-columns: 1fr; gap: 2px; }
+  }
+}
