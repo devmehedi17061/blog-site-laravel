@@ -20,6 +20,7 @@ class PostController extends Controller
     public function index(PostIndexRequest $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Post::class);
+        Post::publishDue();
 
         $posts = Post::query()
             ->with(['author:id,name', 'category:id,name', 'featuredImage'])

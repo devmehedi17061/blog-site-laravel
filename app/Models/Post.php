@@ -54,12 +54,30 @@ class Post extends Model
         return $this->belongsTo(Media::class, 'media_id')->withTrashed();
     }
 
-    /** Live on the public site: published, and not dated in the future. */
+    /**
+     * Live on the public site: published, and not dated in the future. A
+     * scheduled item counts once its date arrives, even before
+     * publishDue() has flipped its status.
+     */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', 'Published')
+        return $query->whereIn('status', ['Published', 'Scheduled'])
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    /**
+     * Marks scheduled items whose date has come as Published. Run every
+     * minute by the scheduler and whenever the admin lists open, for hosts
+     * where nothing runs "schedule:run". The edit date is left alone.
+     */
+    public static function publishDue(): int
+    {
+        return static::query()->where('status', 'Scheduled')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->toBase()
+            ->update(['status' => 'Published']);
     }
 
     public function scopeStatus(Builder $query, ?string $status): Builder
@@ -174,7 +192,7 @@ class Post extends Model
     {
         $date = $this->getOriginal('published_at');
 
-        return $this->getOriginal('status') === 'Published'
+        return in_array($this->getOriginal('status'), ['Published', 'Scheduled'], true)
             && $date !== null
             && \Illuminate\Support\Carbon::parse($date)->lte(now());
     }

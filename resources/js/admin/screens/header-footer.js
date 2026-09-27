@@ -45,7 +45,7 @@ const STARTERS = {
     ].join('\n'),
     css: [
       '.bar { background: #ffffff; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }',
-      '.wrap { display: flex; align-items: center; gap: 20px; max-width: 1100px; margin: 0 auto; padding: 14px 16px; }',
+      '.wrap { display: flex; align-items: center; gap: 20px; max-width: var(--site-width); margin: 0 auto; padding: 14px 16px; }',
       '.nav { display: flex; align-items: center; gap: 16px; margin-left: auto; }',
       '.menu-toggle { display: none; }',
       '',
@@ -71,7 +71,7 @@ const STARTERS = {
     ].join('\n'),
     css: [
       '.bar { background: #201e1d; color: #9b9797; font-size: 13px; }',
-      '.wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; max-width: 1100px; margin: 0 auto; padding: 22px 16px; }',
+      '.wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; max-width: var(--site-width); margin: 0 auto; padding: 22px 16px; }',
       'a { color: #d7d3d3; text-decoration: none; }',
       '',
       '@media (max-width: 600px) { .wrap { flex-direction: column; text-align: center; } }',

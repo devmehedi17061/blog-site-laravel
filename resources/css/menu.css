@@ -21,6 +21,9 @@
     transition: background 110ms ease, color 110ms ease;
   }
 
+  /* A drop-down heading whose own page is not live yet: a label, not a link. */
+  .site-menu-link:not([href]) { cursor: default; }
+
   /* ── the top bar ────────────────────────────────────────────────────── */
   .site-menu-top-link {
     padding: 8px 12px;

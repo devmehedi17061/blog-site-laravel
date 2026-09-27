@@ -6,6 +6,23 @@ serving two faces:
 - **Public blog** — server-rendered Blade, so posts are indexable.
 - **Admin panel** — Alpine.js + Tailwind behind a login at `/admin`.
 
+## Installing a fresh copy
+
+Create an empty MySQL database, copy `.env.example` to `.env` and fill in the `DB_`
+lines, then:
+
+```bash
+composer setup   # composer + npm install, build, then php artisan cms:install
+```
+
+`cms:install` runs the migrations, adds the section library, header and footer
+designs, the contact form and a Home/Blog menu, links the uploads folder, and asks
+for your site name and first Super Admin. It is safe to run again. Add `--demo` for
+the sample content and demo accounts below (refused when `APP_ENV=production`).
+
+Step-by-step install, going live on cPanel or a VPS, and moving content:
+[docs/install-deploy-bn.md](docs/install-deploy-bn.md) (Bangla).
+
 ## Running it
 
 Start MySQL from the XAMPP Control Panel, then two terminals:
@@ -13,12 +30,6 @@ Start MySQL from the XAMPP Control Panel, then two terminals:
 ```bash
 php artisan serve --port=8080   # http://localhost:8080
 npm run dev                     # Vite, for hot reload while editing assets
-```
-
-First time on a fresh clone, link the uploads folder so images are served:
-
-```bash
-php artisan storage:link
 ```
 
 Port 8080 is used because two other XAMPP projects already sit on 8000. Change it in
@@ -38,6 +49,8 @@ once is enough.
 | `/admin/login` | Sign in |
 
 ## Sign in
+
+With `cms:install --demo` (local only; a clean install uses the admin you chose):
 
 | Email | Password | Role |
 | --- | --- | --- |
@@ -720,5 +733,20 @@ flagged the same way.
 **`{!! $post->body !!}` renders raw editor HTML on the public post page.** That is normal
 CMS behaviour and fine while every author is trusted. If you ever open authoring to
 untrusted users, run the body through an HTML sanitiser first.
-#   b l o g - s i t e - l a r a v e l  
+#   b l o g - s i t e - l a r a v e l 
  
+ 
+
+cPanel:
+নিজের কম্পিউটারে composer install --no-dev আর npm run build চালান।
+zip করে upload করুন। vendor আর public/build সহ দেবেন।
+Domain-এর root দিন public folder-এ।
+.env-এ দিন APP_ENV=production, APP_DEBUG=false।
+Terminal থেকে php artisan cms:install চালান।
+প্রতি মিনিটের একটা cron দিন (schedule:run)।
+VPS: git clone, তারপর একই command-গুলো।
+আপনার এখনকার content সহ সরাতে চাইলে:
+Database export করে নতুন জায়গায় import করুন।
+storage/app/public folder কপি করুন।
+পুরোনো APP_KEY নতুন .env-এ দিন।
+Database export কখনো Git-এ দেবেন না, এতে user-দের তথ্য আছে।

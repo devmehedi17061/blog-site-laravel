@@ -15,7 +15,7 @@
     @php($item = $node['item'])
 
     <div class="site-menu-node">
-      <a href="{{ $item->url }}" class="site-menu-link"
+      <a @if ($item->url) href="{{ $item->url }}" @endif class="site-menu-link"
          @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
         {!! \App\Support\MenuIcons::svg($item->icon) !!}
         <span class="site-menu-text">{{ $item->label }}</span>

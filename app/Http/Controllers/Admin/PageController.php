@@ -25,6 +25,7 @@ class PageController extends Controller
     public function index(PageIndexRequest $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Page::class);
+        Page::publishDue();
 
         $pages = Page::query()
             ->with('author:id,name')

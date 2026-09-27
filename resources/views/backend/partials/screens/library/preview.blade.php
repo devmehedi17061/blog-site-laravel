@@ -24,6 +24,6 @@
 
   <p class="flex-none border-t border-line p-2 text-[11px] text-neutral-500">
     <span x-text="`${Math.round(previewWidth)}px wide${previewScale < 1 ? ', shown at ' + Math.round(previewScale * 100) + '%' : ''}.`"></span>
-    Shown with typical page spacing (48px 32px, content 1100px) and sample text; each page sets its own.
+    Shown with typical page spacing (48px 32px, content at the site width) and sample text; each page sets its own.
   </p>
 </div>

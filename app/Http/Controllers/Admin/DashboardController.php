@@ -112,8 +112,8 @@ class DashboardController extends Controller
 
         if ($can('pages.view')) {
             $tiles[] = [
-                'key' => 'pages', 'label' => 'Live pages', 'value' => Page::published()->count(), 'tone' => 'dark',
-                'sub' => Page::where('status', '!=', 'Published')->count().' not published',
+                'key' => 'pages', 'label' => 'Live pages', 'value' => $live = Page::published()->count(), 'tone' => 'dark',
+                'sub' => (Page::count() - $live).' not published',
             ];
         }
 
@@ -325,7 +325,7 @@ class DashboardController extends Controller
     private function upcoming(callable $can): array
     {
         $rows = collect();
-        $future = fn ($q) => $q->where('status', 'Scheduled')->orWhere(fn ($q) => $q->where('status', 'Published')->where('published_at', '>', now()));
+        $future = fn ($q) => $q->whereIn('status', ['Scheduled', 'Published'])->where('published_at', '>', now());
 
         if ($can('posts.view')) {
             $rows = $rows->concat(Post::where($future)->whereNotNull('published_at')->orderBy('published_at')->limit(5)->get()

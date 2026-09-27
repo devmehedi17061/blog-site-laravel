@@ -94,19 +94,52 @@ class MenuItem extends Model
     {
         $rows = static::flat($location)->filter(fn (MenuItem $item) => $item->visibleTo($user));
 
+        // A link to a draft or not-yet-due page would only 404 for visitors:
+        // on its own it waits until the page goes live; as a drop-down's
+        // parent it stays, as a plain label.
+        $hidden = $user?->hasPermission('pages.view') ? [] : static::unpublishedPaths();
+
         $byParent = [];
 
         foreach ($rows as $item) {
             $byParent[$item->parent_id ?? 0][] = $item;
         }
 
-        $build = function (int $parentId) use (&$build, $byParent): array {
-            return array_map(
-                fn (MenuItem $item) => ['item' => $item, 'children' => $build($item->id)],
-                $byParent[$parentId] ?? []
-            );
+        $build = function (int $parentId) use (&$build, $byParent, $hidden): array {
+            $nodes = [];
+
+            foreach ($byParent[$parentId] ?? [] as $item) {
+                $children = $build($item->id);
+
+                if ($hidden && in_array(rtrim((string) strtok((string) $item->url, '?#'), '/') ?: '/', $hidden, true)) {
+                    if (! $children) {
+                        continue;
+                    }
+                    $item->url = null;
+                }
+
+                $nodes[] = ['item' => $item, 'children' => $children];
+            }
+
+            return $nodes;
         };
 
         return $build(0);
+    }
+
+    /**
+     * Paths of this site's drafts and not-yet-due pages and posts. Visitors
+     * would only get a 404 there, so their menu links wait until they go live.
+     *
+     * @return list<string>
+     */
+    public static function unpublishedPaths(): array
+    {
+        $pages = Page::withTrashed()->whereNotIn('id', Page::query()->published()->select('id'))->get(['id', 'slug'])
+            ->map(fn (Page $page) => $page->path());
+        $posts = Post::withTrashed()->whereNotIn('id', Post::query()->published()->select('id'))->get(['id', 'slug'])
+            ->map(fn (Post $post) => $post->pathForSlug((string) $post->slug));
+
+        return $pages->concat($posts)->map(fn (string $path) => rtrim($path, '/') ?: '/')->values()->all();
     }
 }

@@ -40,7 +40,7 @@
           @foreach ($menus['Header'] as $node)
             @php $item = $node['item']; @endphp
             <div class="site-menu-node site-menu-top">
-              <a href="{{ $item->url }}" class="site-menu-link site-menu-top-link" @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
+              <a @if ($item->url) href="{{ $item->url }}" @endif class="site-menu-link site-menu-top-link" @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
                 {!! \App\Support\MenuIcons::svg($item->icon) !!}
                 <span class="site-menu-text">{{ $item->label }}</span>
                 @if ($node['children'] && ($caret ?? 'triangle') !== 'none')
@@ -64,7 +64,7 @@
           @foreach ($menus['Footer'] as $node)
             @php $item = $node['item']; @endphp
             <li>
-              <a href="{{ $item->url }}" @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
+              <a @if ($item->url) href="{{ $item->url }}" @endif @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
                 {!! \App\Support\MenuIcons::svg($item->icon, 'menu-icon', 14) !!}<span>{{ $item->label }}</span>
               </a>
             </li>
