@@ -37,6 +37,12 @@ class Category extends Model
         return $this->hasMany(Post::class);
     }
 
+    /** Courses share the blog's category tree. */
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');

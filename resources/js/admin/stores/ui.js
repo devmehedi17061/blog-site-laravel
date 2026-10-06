@@ -17,7 +17,16 @@ const NAV_GROUPS = [
       { key: 'categories', label: 'Categories', mono: 'CT', permission: 'categories.view' },
       { key: 'media', label: 'Media library', mono: 'MD', permission: 'media.view' },
       { key: 'menu', label: 'Menu control', mono: 'MN', permission: 'menu.view' },
-      { key: 'trash', label: 'Trash', mono: 'TR', permission: ['posts.delete', 'pages.delete', 'media.delete'] },
+      { key: 'trash', label: 'Trash', mono: 'TR', permission: ['posts.delete', 'pages.delete', 'media.delete', 'courses.delete'] },
+    ],
+  },
+  {
+    label: 'LMS',
+    items: [
+      { key: 'courses', label: 'Courses', mono: 'CO', permission: 'courses.view' },
+      { key: 'payments', label: 'Payments', mono: 'PY', permission: 'enrollments.view' },
+      { key: 'enrollments', label: 'Enrollments', mono: 'EN', permission: 'enrollments.view' },
+      { key: 'students', label: 'Students', mono: 'SD', permission: 'enrollments.view' },
     ],
   },
   {
@@ -51,7 +60,7 @@ const TITLES = {
 
 // Screens not in this list land in later parts; the shell shows a
 // placeholder for them rather than a dead link.
-const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account']
+const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'courses', 'payments', 'enrollments', 'students', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account']
 
 export default {
   screen: 'dashboard',

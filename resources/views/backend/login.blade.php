@@ -7,9 +7,9 @@
     <div class="w-full max-w-[400px] border border-line-heavy bg-surface shadow-lg">
 
       <div class="flex items-center gap-3 bg-accent px-5 py-4 text-white">
-        <span class="grid h-9 w-9 place-items-center bg-white/20 font-heading text-[13px] font-bold">CMS</span>
+        <span class="grid h-9 w-9 place-items-center bg-white/20 font-heading text-[13px] font-bold">{{ $site->initials() }}</span>
         <div>
-          <div class="font-heading text-[17px] font-extrabold tracking-tight">CMS Admin</div>
+          <div class="font-heading text-[17px] font-extrabold tracking-tight">{{ $site->name() }} Admin</div>
           <div class="text-[10px] tracking-[0.14em] uppercase opacity-85">Control panel</div>
         </div>
       </div>

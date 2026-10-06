@@ -15,7 +15,7 @@ class MenuItem extends Model
 
     public const LOCATIONS = ['Header', 'Footer'];
 
-    public const VISIBILITIES = ['Public', 'Authenticated', 'Admin only'];
+    public const VISIBILITIES = ['Public', 'Authenticated', 'Guests', 'Admin only'];
 
     public const TARGETS = ['_self', '_blank'];
 
@@ -60,6 +60,8 @@ class MenuItem extends Model
     {
         return match ($this->visibility) {
             'Authenticated' => $user !== null,
+            // Signed out only: "Sign in" and "Register".
+            'Guests' => $user === null,
             'Admin only' => (bool) $user?->hasPermission('pages.view'),
             default => true,
         };

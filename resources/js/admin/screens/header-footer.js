@@ -100,6 +100,9 @@ export default function headerFooter() {
     formsLoaded: false,
 
     async init() {
+      // Captured now: after an await, `$root` of a screen that was closed
+      // meanwhile is no longer in the page — see alive().
+      this._root = this.$root
       this.schedulePreview = debounce(() => this.renderPreview(), 400)
 
       this._onMessage = (event) => {
@@ -110,10 +113,15 @@ export default function headerFooter() {
 
       await Promise.all([this.load(), this.loadForms()])
 
+      // Left for another screen while loading: stop here. Carrying on would
+      // move the address back to #/layout and watch a component that is gone.
+      if (!this.alive()) return
+
       const wanted = this.templates.find((p) => String(p.id) === String(this.$store.ui.param))
       const first = wanted ?? this.templates.find((p) => p.kind === this.kind && p.is_active) ?? this.templates.find((p) => p.kind === this.kind)
       if (wanted) this.kind = wanted.kind
       first ? await this.select(first) : await this.startNew()
+      if (!this.alive()) return
 
       this.$watch('draft', () => this.schedulePreview())
       // A field added or retyped on the Fields tab gets its value slot.
@@ -186,6 +194,11 @@ export default function headerFooter() {
       return this.kind === 'header' ? 'header' : 'footer'
     },
 
+    /** Still the screen on show — not one closed while a request was out. */
+    alive() {
+      return !!this._root?.isConnected && this.$store.ui.screen === 'layout'
+    },
+
     async select(part) {
       if (!(await this.confirmDiscard())) return
 
@@ -198,7 +211,7 @@ export default function headerFooter() {
       this.dirty = false
       this.pane = 'content'
 
-      if (part.id) this.$store.ui.go('layout', part.id)
+      if (part.id && this.alive()) this.$store.ui.go('layout', part.id)
     },
 
     async startNew() {

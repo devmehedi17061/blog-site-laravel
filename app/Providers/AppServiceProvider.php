@@ -7,6 +7,7 @@ use App\Support\Security;
 use App\Support\Site;
 use App\Support\SiteSettings;
 use App\View\Composers\MenuComposer;
+use App\View\Composers\StudentPanelComposer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Security::class);
         // Builds both menus once per request, for the header and the footer.
         $this->app->singleton(MenuComposer::class);
+        $this->app->singleton(StudentPanelComposer::class);
 
         // The Email tab decides how mail leaves the site. Applied when the
         // mailer is first built, so requests that send nothing read nothing.
@@ -54,5 +56,8 @@ class AppServiceProvider extends ServiceProvider
             ['frontend.partials.header', 'frontend.partials.footer'],
             MenuComposer::class
         );
+
+        // The student panel's sidebar counts.
+        View::composer('frontend.student.*', StudentPanelComposer::class);
     }
 }

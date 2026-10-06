@@ -7,7 +7,7 @@
         <path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>
       </svg>
     </button>
-    <span class="font-heading text-[17px] font-extrabold tracking-tight whitespace-nowrap">CMS Admin</span>
+    <span class="font-heading text-[17px] font-extrabold tracking-tight whitespace-nowrap">{{ Str::limit($site->name(), 24) }} Admin</span>
   </div>
 
   <div class="flex min-w-0 flex-[1_1_320px] items-center gap-3 px-5 py-2">

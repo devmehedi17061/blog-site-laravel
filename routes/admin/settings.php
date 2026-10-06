@@ -27,6 +27,8 @@ Route::post('/settings/spam/check', [SettingsController::class, 'checkSpamKey'])
 
 Route::put('/settings/frontend', [SettingsController::class, 'updateFrontend'])->name('settings.frontend.update');
 
+Route::put('/settings/lms', [SettingsController::class, 'updateLms'])->name('settings.lms.update');
+
 Route::put('/settings/design', [SettingsController::class, 'updateDesign'])->name('settings.design.update');
 
 // Settings → Redirects.

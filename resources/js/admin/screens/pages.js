@@ -73,7 +73,7 @@ export default function pages() {
         title: 'Change the homepage',
         message: page
           ? `Visitors to ${window.location.host}/ will see "${page.title}". Its own address will redirect there.`
-          : `Visitors to ${window.location.host}/ will see the latest blog posts instead of a page.`,
+          : `Visitors to ${window.location.host}/ will see the built-in course homepage (featured courses and latest posts) instead of a page.`,
         confirmLabel: 'Change homepage',
       })
 

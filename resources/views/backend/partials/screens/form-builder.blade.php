@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'forms' && $store.ui.editing">
-<div x-data="formBuilder" x-init="init()">
+<div x-data="formBuilder">
 
   <div class="editor-bar">
     <button type="button" class="btn btn-ghost btn-sm" @click="backToList()">← Forms</button>

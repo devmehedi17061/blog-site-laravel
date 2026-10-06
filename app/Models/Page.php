@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Page extends Model
 {
@@ -119,7 +120,7 @@ class Page extends Model
         return static::$homeIdCache;
     }
 
-    /** Pass null to show the latest blog posts at "/" instead of a page. */
+    /** Pass null to show the built-in course homepage at "/" instead of a page. */
     public static function setHome(?Page $page): void
     {
         Setting::put(self::HOME_SETTING, $page?->id ?? 0, 'reading');
@@ -306,7 +307,7 @@ class Page extends Model
 
         return in_array($this->getOriginal('status'), ['Published', 'Scheduled'], true)
             && $date !== null
-            && \Illuminate\Support\Carbon::parse($date)->lte(now());
+            && Carbon::parse($date)->lte(now());
     }
 
     /** The homepage lives at "/": its old slug should lead there, not via its new slug. */

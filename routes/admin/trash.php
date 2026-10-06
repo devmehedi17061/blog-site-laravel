@@ -12,7 +12,7 @@ Route::post('/revisions/{revision}/restore', [RevisionController::class, 'restor
 
 // The Trash. Each controller action checks the policy for every item.
 Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
-Route::prefix('/trash/{type}')->whereIn('type', ['posts', 'pages', 'media'])->name('trash.')->group(function () {
+Route::prefix('/trash/{type}')->whereIn('type', ['posts', 'pages', 'media', 'courses'])->name('trash.')->group(function () {
     Route::post('/restore', [TrashController::class, 'restore'])->name('restore');
     Route::post('/delete', [TrashController::class, 'destroy'])->name('destroy');
     Route::post('/empty', [TrashController::class, 'empty'])->name('empty');

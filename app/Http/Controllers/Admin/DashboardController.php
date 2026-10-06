@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Category;
+use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\Media;
 use App\Models\Page;
+use App\Models\Payment;
 use App\Models\Post;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Site;
 use App\Support\SiteSettings;
@@ -78,7 +82,7 @@ class DashboardController extends Controller
             'url' => url('/'),
             'live' => ! $site->inMaintenance(),
             'indexed' => ! $site->hiddenFromSearch(),
-            'home' => $home ?? 'Latest posts',
+            'home' => $home ?? 'Course homepage',
             'language' => $language,
             'mail' => $can('settings.view') ? $this->mailLabel((string) $settings->get('mail.provider')) : null,
         ];
@@ -114,6 +118,23 @@ class DashboardController extends Controller
             $tiles[] = [
                 'key' => 'pages', 'label' => 'Live pages', 'value' => $live = Page::published()->count(), 'tone' => 'dark',
                 'sub' => (Page::count() - $live).' not published',
+            ];
+        }
+
+        if ($can('courses.view')) {
+            $students = User::whereHas('role', fn ($q) => $q->where('slug', Role::STUDENT))->count();
+            $tiles[] = [
+                'key' => 'courses', 'label' => 'Live courses', 'value' => Course::published()->count(), 'tone' => 'tint',
+                'sub' => sprintf('%d student%s · %d draft%s', $students, $students === 1 ? '' : 's',
+                    $drafts = Course::where('status', 'Draft')->count(), $drafts === 1 ? '' : 's'),
+            ];
+        }
+
+        if ($can('enrollments.view')) {
+            $recent = Enrollment::where('created_at', '>=', now()->subDays(30))->count();
+            $tiles[] = [
+                'key' => 'enrollments', 'label' => 'Enrollments · 30 days', 'value' => $recent, 'tone' => 'plain',
+                'sub' => ($pending = Enrollment::where('status', 'Pending')->count()).' waiting for approval',
             ];
         }
 
@@ -237,6 +258,15 @@ class DashboardController extends Controller
 
         if (! $user->two_factor_confirmed_at) {
             $add('info', 'Your account has no two-factor sign-in', 'A code from your phone or email keeps the panel safe even if the password leaks.', 'account');
+        }
+
+        if ($can('enrollments.view') && ($pending = Payment::where('status', 'Pending')->count())) {
+            $add('warn', "{$pending} payment".($pending === 1 ? '' : 's').' waiting for verification',
+                'Match the transaction IDs with your statement, then verify them under LMS → Payments.', 'payments');
+        }
+
+        if ($can('courses.view') && ($n = Course::published()->doesntHave('lessons')->count())) {
+            $add('info', "{$n} live course(s) have no lessons", 'Students can enroll but have nothing to learn yet.', 'courses');
         }
 
         if ($can('forms.view') && ($unread = FormSubmission::unread()->count())) {
@@ -425,9 +455,13 @@ class DashboardController extends Controller
             'media' => $can('media.view') ? Media::count() : null,
             'roles' => $can('roles.view') ? DB::table('roles')->count() : null,
             'forms' => $can('forms.view') ? Form::count() : null,
+            'courses' => $can('courses.view') ? Course::count() : null,
+            // Waiting payments, like the inbox: the badge is a to-do list.
+            'payments' => $can('enrollments.view') ? (Payment::where('status', 'Pending')->count() ?: null) : null,
+            'students' => $can('enrollments.view') ? User::whereHas('role', fn ($q) => $q->where('slug', Role::STUDENT))->count() : null,
             // Unread, not total: a badge is a to-do list.
             'inbox' => $can('forms.view') ? FormSubmission::unread()->count() : null,
-            'trash' => $can('posts.delete') || $can('pages.delete') || $can('media.delete') ? $this->trashCount() : null,
+            'trash' => $can('posts.delete') || $can('pages.delete') || $can('media.delete') || $can('courses.delete') ? $this->trashCount() : null,
         ], fn ($v) => $v !== null);
     }
 

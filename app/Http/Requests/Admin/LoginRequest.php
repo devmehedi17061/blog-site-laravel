@@ -63,6 +63,13 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Right password, wrong door: learners sign in on the public site.
+        if (! $user->isStaff()) {
+            throw ValidationException::withMessages([
+                'email' => ['This is a student account. Sign in at '.route('student.login').' instead.'],
+            ]);
+        }
+
         if (! $user->isActive()) {
             throw ValidationException::withMessages([
                 'email' => ['This account is suspended. Contact a super admin.'],

@@ -15,6 +15,7 @@ class RolePermissionSeeder extends Seeder
     private array $groups = [
         'Content' => ['pages', 'posts', 'categories', 'media', 'menu'],
         'Builders' => ['sections', 'forms', 'layout'],
+        'LMS' => ['courses', 'enrollments'],
         'Access' => ['users', 'roles', 'security'],
         'System' => ['settings'],
     ];
@@ -46,7 +47,11 @@ class RolePermissionSeeder extends Seeder
                 'description' => 'Full access to every module and setting.', 'grant' => 'all'],
             ['name' => 'Editor', 'slug' => 'editor', 'scope' => 'Content', 'is_locked' => false,
                 'description' => 'Manages all content and builders, no access control.',
-                'grant' => ['pages', 'posts', 'categories', 'media', 'menu', 'sections', 'forms', 'layout']],
+                'grant' => ['pages', 'posts', 'categories', 'media', 'menu', 'sections', 'forms', 'layout', 'courses', 'enrollments']],
+            ['name' => 'Instructor', 'slug' => 'instructor', 'scope' => 'Own content', 'is_locked' => false,
+                'description' => 'Builds and edits their own courses and sees who is enrolled on them.',
+                'grant' => ['courses.view', 'courses.create', 'courses.update', 'enrollments.view',
+                    'media.view', 'media.create', 'categories.view']],
             ['name' => 'Author', 'slug' => 'author', 'scope' => 'Own content', 'is_locked' => false,
                 'description' => 'Writes and edits their own posts and uploads media.',
                 'grant' => ['posts.view', 'posts.create', 'posts.update', 'categories.view',
@@ -54,6 +59,10 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'Viewer', 'slug' => 'viewer', 'scope' => 'Read only', 'is_locked' => false,
                 'description' => 'Read only access to content listings.',
                 'grant' => ['pages.view', 'posts.view', 'categories.view', 'media.view', 'users.view']],
+            // Learners sign in on the public site and never see the panel.
+            ['name' => 'Student', 'slug' => 'student', 'scope' => 'Read only', 'is_locked' => true,
+                'description' => 'Learners. Sign in on the public site; no admin panel access.',
+                'grant' => []],
         ];
 
         foreach ($roles as $definition) {

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Course;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\Post;
@@ -20,6 +21,7 @@ class Trash
         'posts' => ['model' => Post::class, 'label' => 'Posts', 'permission' => 'posts'],
         'pages' => ['model' => Page::class, 'label' => 'Pages', 'permission' => 'pages'],
         'media' => ['model' => Media::class, 'label' => 'Media', 'permission' => 'media'],
+        'courses' => ['model' => Course::class, 'label' => 'Courses', 'permission' => 'courses'],
     ];
 
     /** @return class-string<Model> */

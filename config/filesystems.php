@@ -38,6 +38,16 @@ return [
             'report' => false,
         ],
 
+        // Uploaded lesson videos. Private, and never served directly: the
+        // only way in is LearnController::video(), which checks enrollment.
+        'lessons' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/lessons'),
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

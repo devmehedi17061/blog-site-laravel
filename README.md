@@ -1,10 +1,18 @@
-# CMS
+# LMS
 
-A Laravel blog CMS built from `Northwind Admin Panel.html`. One Laravel application
-serving two faces:
+A Laravel **learning management system** built on the blog CMS from
+`Northwind Admin Panel.html`. One Laravel application serving three faces:
 
-- **Public blog** — server-rendered Blade, so posts are indexable.
-- **Admin panel** — Alpine.js + Tailwind behind a login at `/admin`.
+- **Public site** — server-rendered Blade: the course catalogue, course pages, the blog
+  and builder pages, all indexable.
+- **Student area** — sign up, buy or join courses, learn lesson by lesson, track
+  progress, review, and print a certificate.
+- **Admin panel** — Alpine.js + Tailwind behind a login at `/admin`: courses and their
+  curriculum, enrollments and payments, students, plus everything the CMS already had.
+
+The LMS is in the [LMS](#lms) section below. In Bangla:
+[docs/lms-guide-bn.md](docs/lms-guide-bn.md) (using the LMS) and
+[docs/install-deploy-bn.md](docs/install-deploy-bn.md) (install and go live).
 
 ## Installing a fresh copy
 
@@ -40,7 +48,12 @@ once is enough.
 
 | URL | What |
 | --- | --- |
-| `/` | The page whose slug is `/`, falling back to the blog if there is none |
+| `/` | The page chosen as the homepage, falling back to the built-in course homepage |
+| `/courses` | Course catalogue — search, topic, level, free/paid, sort |
+| `/courses/{slug}` | A course's page: curriculum, reviews, the buy box |
+| `/learn/{slug}/{lesson?}` | The course player |
+| `/login`, `/register` | Student sign-in and sign-up |
+| `/my-courses`, `/my-account` | The student area |
 | `/{slug}` | Any other published page |
 | `/blog` | Public blog |
 | `/blog/{slug}` | A post |
@@ -58,11 +71,14 @@ With `cms:install --demo` (local only; a clean install uses the admin you chose)
 | mira@example.com | password | Editor |
 | nadia@example.com | password | Author — own content only |
 | tanvir@example.com | password | Viewer, suspended — login is blocked on purpose |
+| rafiq@example.com | password | Instructor — own courses only |
+| student@example.com | password | Student (Sadia) — sign in at `/login`, not `/admin` |
+| karim@example.com | password | Student (Karim) |
 
 ## Layout
 
 ```
-blog-site-laravel/
+lms-site-laravel/
 ├── app/
 │   ├── Actions/Posts/SavePost.php      create + update rules in one place
 │   ├── Http/
@@ -137,7 +153,7 @@ Plain Laravel **session auth** — no tokens, no CORS, because everything is one
 
 ## Database
 
-`blog_site_laravel` on MySQL. Reset and reseed:
+`lms_site_laravel` on MySQL. Reset and reseed:
 
 ```bash
 php artisan migrate:fresh --seed
@@ -151,9 +167,127 @@ php artisan migrate:fresh --seed
 | Menu | `menu_items` |
 | Builders | `forms`, `form_fields`, `form_submissions` |
 | System | `settings`, `ip_rules`, `activity_logs` |
+| LMS | `courses`, `course_sections`, `lessons`, `enrollments`, `lesson_completions`, `course_reviews` |
 
 Permissions follow `module.ability` — `posts.create`, `users.delete`. The sidebar hides
 any entry the signed-in role cannot view, and a group with no visible entries hides too.
+
+## LMS
+
+### What is where
+
+| | Public | Admin |
+| --- | --- | --- |
+| Courses | `/courses`, `/courses/{slug}` | **LMS → Courses**: list, then a full-page editor (Details · Curriculum · SEO) |
+| Lessons | `/learn/{slug}/{lesson}` | The editor's **Curriculum** tab: sections of lessons, one modal per lesson |
+| Payments | `/courses/{slug}/checkout` | **LMS → Enrollments**: Pending sign-ups, Approve / Cancel / Enroll a student |
+| Students | `/register`, `/my-courses`, `/my-account` | **LMS → Students**, and User management for passwords and suspensions |
+| Rules | — | **Settings → LMS**: currency, payment methods and instructions, auto-approve, sign-up, reviews, certificates |
+
+Courses share the blog's **Categories**, so one tree files both. Deleted courses go to the
+**Trash** (with posts, pages and media) and come back with every student's place and progress.
+
+### One account system, two doors
+
+Students and staff are both `users`. The **Student** role (locked, no permissions) is what
+tells them apart:
+
+- `/admin/login` refuses student accounts, and the `staff` middleware sends a signed-in
+  student who opens `/admin` to `/my-courses` (JSON calls get 403).
+- `/login` is the students' door. Staff can use it too and land on their own courses, but
+  an account with two-factor on must use `/admin/login`, the only place that asks for the code.
+- Guests sent to sign in go to the right door: `/admin/*` → `/admin/login`, anything else → `/login`.
+
+### Roles
+
+| Role | Courses | Enrollments |
+| --- | --- | --- |
+| Super Admin, Editor | everything | everything |
+| Instructor (`Own content`) | create, edit **their own** (cannot delete, cannot reassign) | see students on **their own** courses |
+| Student | — | — (public site only) |
+
+Permissions are `courses.*` and `enrollments.*`, group **LMS** under Roles & permissions.
+Migration `2026_10_06_090100` adds them to every role that could already edit pages.
+
+### Selling a course
+
+There is no card gateway. A paid course works the way most Bangladeshi course sites do:
+
+1. The student opens **Buy this course** → checkout, sees **Settings → LMS → Payment
+   instructions**, pays by bKash / Nagad / bank, and types the method and transaction ID.
+2. The enrollment is **Pending**. It shows on the dashboard ("waiting for approval"), as a
+   sidebar badge, and first in **LMS → Enrollments**.
+3. You check the payment and press **Approve**; the course opens for the student.
+
+Turn on **Open paid courses straight away** to skip step 3. A price of `0` (or a sale price of
+`0`) makes a course free: one click to join. **Enroll a student** adds anyone by email — a
+new email gets a student account and a password shown once.
+
+### Lessons
+
+A lesson is a **video** (YouTube, Vimeo — ordinary watch links are fine — or an `.mp4`
+address) or an **article**, with rich-text notes, an optional download from the media
+library, a length in minutes, and a **Free preview** switch that opens it to everyone.
+`Lesson::embedUrl()` turns links into embeds (YouTube through `youtube-nocookie.com`).
+
+**Private uploaded videos.** YouTube *Private* videos cannot be embedded anywhere, so a
+video lesson can instead be an uploaded file:
+
+- The editor sends it in 5 MB chunks (`lib/chunkUpload.js` →
+  `POST /admin/api/courses/{id}/lesson-video`), so PHP's `upload_max_filesize` never matters;
+  the ceiling is **Settings → LMS → Largest video upload** (2 GB by default).
+- `App\Support\LessonVideos` joins the chunks, checks the bytes really are a video, and
+  stores it on the private `lessons` disk (`storage/app/private/lessons/{course}/…`). Nothing
+  in `public/` points at it.
+- `GET /learn/{slug}/{lesson}/video` streams it after the same check as the lesson page
+  (active enrollment, staff who can edit, or a free preview), with Range support so the
+  player can seek.
+- A lesson only accepts a path its own course uploaded. Replaced and removed videos are
+  deleted on save; uploads never attached are swept after a day; deleting a course for good
+  deletes its folder.
+- `storage/app/private/lessons` is not in Git — copy it along with the database when
+  moving the site.
+
+The player hides the download button and right-click menu, but a determined student can
+still capture what plays on their screen; that is true of every video site.
+
+The curriculum is saved as one tree (`PUT /admin/api/courses/{id}/curriculum`) in one
+transaction, like a page's sections. Existing rows keep their ids, so **renaming or
+reordering never loses student progress**; only lessons removed from the tree are deleted.
+Ids that belong to another course are never reused.
+
+### Progress and certificates
+
+`lesson_completions` holds one row per finished lesson. When the last one is ticked,
+`enrollments.completed_at` is set (`Enrollment::syncCompletion()`, also re-run when the
+curriculum changes) and `/certificate/{enrollment}` opens: a printable A4 landscape page —
+"Save as PDF" in the print dialog makes the file. Only the student and staff who can see the
+enrollment may open it.
+
+### Admin JSON endpoints (LMS)
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| GET | `/courses` | Paged list — `search`, `status`, `category_id`, `sort`, `direction`, `per_page` |
+| GET | `/courses/options` | Statuses, levels, categories, instructors, currency |
+| POST / GET / PUT / DELETE | `/courses`, `/courses/{id}` | Create, read, update, move to trash |
+| GET / PUT | `/courses/{id}/curriculum` | Read, or replace the whole tree |
+| GET | `/enrollments` | Paged — `search`, `status`, `course_id`; returns a per-status `summary` |
+| GET | `/enrollments/options` | Courses, payment methods, currency |
+| POST | `/enrollments` | Enroll by email (makes a student account when needed) |
+| PUT / DELETE | `/enrollments/{id}` | Approve / cancel / edit payment, or remove |
+| GET | `/students` | Student accounts with active, pending and completed counts |
+| PUT | `/settings/lms` | Settings → LMS |
+
+### Tests
+
+```bash
+php artisan test
+```
+
+`tests/Feature/LmsTest.php` covers the rules above: the admin door, drafts, previews,
+free and paid enrollment, auto-approve, completion and certificates, reviews, instructor
+scope, the curriculum tree, enrollments, settings and the trash.
 
 ## Admin JSON endpoints
 
@@ -733,20 +867,3 @@ flagged the same way.
 **`{!! $post->body !!}` renders raw editor HTML on the public post page.** That is normal
 CMS behaviour and fine while every author is trusted. If you ever open authoring to
 untrusted users, run the body through an HTML sanitiser first.
-#   b l o g - s i t e - l a r a v e l 
- 
- 
-
-cPanel:
-নিজের কম্পিউটারে composer install --no-dev আর npm run build চালান।
-zip করে upload করুন। vendor আর public/build সহ দেবেন।
-Domain-এর root দিন public folder-এ।
-.env-এ দিন APP_ENV=production, APP_DEBUG=false।
-Terminal থেকে php artisan cms:install চালান।
-প্রতি মিনিটের একটা cron দিন (schedule:run)।
-VPS: git clone, তারপর একই command-গুলো।
-আপনার এখনকার content সহ সরাতে চাইলে:
-Database export করে নতুন জায়গায় import করুন।
-storage/app/public folder কপি করুন।
-পুরোনো APP_KEY নতুন .env-এ দিন।
-Database export কখনো Git-এ দেবেন না, এতে user-দের তথ্য আছে।

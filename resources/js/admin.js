@@ -8,6 +8,11 @@ import dialogStore from './admin/stores/dialog.js'
 import dashboard from './admin/screens/dashboard.js'
 import posts from './admin/screens/posts.js'
 import postEditor from './admin/screens/post-editor.js'
+import courses from './admin/screens/courses.js'
+import courseEditor from './admin/screens/course-editor.js'
+import enrollments from './admin/screens/enrollments.js'
+import students from './admin/screens/students.js'
+import payments from './admin/screens/payments.js'
 import media from './admin/screens/media.js'
 import mediaPicker from './admin/screens/media-picker.js'
 import pages from './admin/screens/pages.js'
@@ -39,6 +44,11 @@ Alpine.store('dialog', dialogStore)
 Alpine.data('dashboard', dashboard)
 Alpine.data('posts', posts)
 Alpine.data('postEditor', postEditor)
+Alpine.data('courses', courses)
+Alpine.data('courseEditor', courseEditor)
+Alpine.data('enrollments', enrollments)
+Alpine.data('students', students)
+Alpine.data('payments', payments)
 Alpine.data('media', media)
 Alpine.data('mediaPicker', mediaPicker)
 Alpine.data('pages', pages)

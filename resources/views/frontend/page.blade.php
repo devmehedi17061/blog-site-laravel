@@ -16,10 +16,10 @@
 @section('title', $page->meta_title ?: ($page->isHome() ? $site->homeTitle() : $site->title($page->title)))
 @section('description', $page->meta_description ?: ($page->excerpt ?? ''))
 @section('canonical', $page->canonical_url ?: url($page->path()))
-@section('og_title', $page->og_title)
-@section('og_description', $page->og_description)
-@section('og_image', $page->og_image ?: $page->featuredImage?->url)
-@section('robots', $page->robots)
+@section('og_title', (string) ($page->og_title))
+@section('og_description', (string) ($page->og_description))
+@section('og_image', (string) ($page->og_image ?: $page->featuredImage?->url))
+@section('robots', (string) ($page->robots))
 
 @push('head')
 

@@ -3,7 +3,7 @@
 @section('title', $category->meta_title ?: $site->title($category->name))
 @section('description', $category->meta_description ?: $category->description
     ?: 'Posts filed under '.$category->name.'.')
-@section('og_image', $category->image?->url)
+@section('og_image', (string) ($category->image?->url))
 
 @section('content')
 

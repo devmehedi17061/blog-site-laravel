@@ -6,6 +6,7 @@ const TABS = [
   { key: 'posts', label: 'Posts', permission: 'posts.view', noun: 'post' },
   { key: 'pages', label: 'Pages', permission: 'pages.view', noun: 'page' },
   { key: 'media', label: 'Media', permission: 'media.view', noun: 'file' },
+  { key: 'courses', label: 'Courses', permission: 'courses.view', noun: 'course' },
 ]
 
 /**

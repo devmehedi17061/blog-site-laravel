@@ -7,14 +7,15 @@ const TABS = [
   { key: 'spam', label: 'Spam protection' },
   { key: 'design', label: 'Design' },
   { key: 'frontend', label: 'Front end' },
+  { key: 'lms', label: 'LMS' },
   { key: 'redirects', label: 'Redirects' },
 ]
 
 /** Tabs whose screens exist; the rest say they are coming. */
-const BUILT = ['site', 'email', 'spam', 'design', 'frontend', 'redirects']
+const BUILT = ['site', 'email', 'spam', 'design', 'frontend', 'lms', 'redirects']
 
 /** Each tab edits one settings group, saved on its own. */
-const GROUP_OF = { site: 'site', email: 'mail', spam: 'spam', design: 'design', frontend: 'frontend' }
+const GROUP_OF = { site: 'site', email: 'mail', spam: 'spam', design: 'design', frontend: 'frontend', lms: 'lms' }
 
 /** Settings → Design: the values a fresh site starts with (App\Support\SiteSettings). */
 const DESIGN_DEFAULTS = {
@@ -88,6 +89,7 @@ export default function settings() {
     spam: null,
     frontend: null,
     design: null,
+    lms: null,
     designSwatches: DESIGN_SWATCHES,
     snapshots: {},
     errors: {},

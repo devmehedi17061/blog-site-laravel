@@ -144,6 +144,29 @@ class SiteSettings
             // ── Email ────────────────────────────────────────────────────
             // "log" writes mail to storage/logs instead of sending it — the
             // honest state of a site nobody has set up yet.
+            // ── LMS: selling courses and who may sign up ─────────────────
+            // Printed before every price: ৳, $, Tk, € …
+            'lms.currency' => '৳',
+            // Students may make their own account from /register.
+            'lms.allow_registration' => true,
+            // Paid courses: off means an admin checks the payment first.
+            'lms.auto_approve' => false,
+            // One per line; the checkout offers these.
+            'lms.payment_methods' => "bKash\nNagad\nRocket\nBank transfer",
+            // Shown on the checkout: where to send the money.
+            'lms.payment_instructions' => 'Send the course fee to our bKash / Nagad merchant number 01XXXXXXXXX, then enter the transaction ID below. Your course opens as soon as we confirm the payment.',
+            // Largest uploaded lesson video, in MB (they arrive in chunks,
+            // so PHP's own upload limit does not apply).
+            'lms.max_video_mb' => 2048,
+            // Students finish lessons in order: the next one opens only
+            // once the one before it is marked complete.
+            'lms.sequential' => true,
+            'lms.certificates' => true,
+            'lms.reviews' => true,
+            // The text on the certificate, under the student's name.
+            'lms.certificate_text' => 'has successfully completed the course',
+            'lms.certificate_signer' => '',
+
             'mail.provider' => 'log',
             'mail.from_address' => '',
             'mail.from_name' => '',

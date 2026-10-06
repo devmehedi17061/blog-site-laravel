@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role_id',
         'name',
         'email',
+        'phone',
         'password',
         'status',
         'avatar',
@@ -76,6 +77,41 @@ class User extends Authenticatable
     public function media(): HasMany
     {
         return $this->hasMany(Media::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
+
+    /** The enrollment that lets this account into a course, if it has one. */
+    public function activeEnrollmentFor(Course $course): ?Enrollment
+    {
+        return $this->enrollments()->where('course_id', $course->id)->where('status', 'Active')->first();
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->role?->slug === Role::STUDENT;
+    }
+
+    /**
+     * Whether the account belongs in the admin panel at all. A learner, or
+     * an account with no role, is kept to the public site.
+     */
+    public function isStaff(): bool
+    {
+        return $this->role !== null && ! $this->isStudent();
     }
 
     public function scopeStatus(Builder $query, ?string $status): Builder

@@ -17,8 +17,8 @@ use Database\Seeders\FormSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SectionLibrarySeeder;
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
@@ -109,9 +109,11 @@ Artisan::command('security:reset-2fa {email}', function (string $email) {
 
 /*
 | Sets up a fresh copy of the site: the tables, the section library, the
-| header and footer designs, the contact form, a Home/Blog menu and a first
+| header and footer designs, the contact form, a Home/Courses/Blog menu
+| (with "My courses" and "Sign in" for students) and a first
 | admin of your choosing. --demo adds the sample pages and posts and the four
-| demo accounts, which all use the password "password", so it refuses to run
+| demo accounts — and the sample courses, an instructor and two students —
+| which all use the password "password", so it refuses to run
 | on a live site. Safe to run again: nothing already there is replaced.
 */
 Artisan::command('cms:install
@@ -128,7 +130,7 @@ Artisan::command('cms:install
 
     try {
         DB::connection()->getPdo();
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         $this->error('Cannot reach the database: '.$e->getMessage());
         $this->line('Create an empty database, then fill in DB_DATABASE, DB_USERNAME and DB_PASSWORD in .env.');
 
@@ -151,7 +153,10 @@ Artisan::command('cms:install
             if (MenuItem::where('location', $location)->doesntExist()) {
                 app(SaveMenu::class)->handle($location, [
                     ['label' => 'Home', 'url' => '/', 'depth' => 0],
+                    ['label' => 'Courses', 'url' => '/courses', 'depth' => 0],
                     ['label' => 'Blog', 'url' => '/blog', 'depth' => 0],
+                    ['label' => 'My courses', 'url' => '/my-courses', 'visibility' => 'Authenticated', 'depth' => 0],
+                    ['label' => 'Sign in', 'url' => '/login', 'visibility' => 'Guests', 'depth' => 0],
                 ]);
             }
         }

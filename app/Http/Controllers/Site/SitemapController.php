@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Course;
 use App\Models\Page;
 use App\Models\Post;
 use App\Support\Site;
@@ -86,6 +87,13 @@ class SitemapController extends Controller
                 continue;
             }
             $urls[] = ['loc' => url($page->path()), 'lastmod' => $page->updated_at?->toAtomString()];
+        }
+
+        // The course catalogue and every live course.
+        $latestCourse = Course::published()->max('updated_at');
+        $urls[] = ['loc' => route('courses.index'), 'lastmod' => $latestCourse ? Carbon::parse($latestCourse)->toAtomString() : null];
+        foreach (Course::published()->latest('published_at')->get(['id', 'slug', 'updated_at']) as $course) {
+            $urls[] = ['loc' => route('courses.show', $course->slug), 'lastmod' => $course->updated_at?->toAtomString()];
         }
 
         foreach (Post::published()->tap($indexable)->latest('published_at')->get(['id', 'slug', 'updated_at']) as $post) {

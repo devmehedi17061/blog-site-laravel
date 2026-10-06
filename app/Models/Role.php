@@ -13,6 +13,9 @@ class Role extends Model
 
     public const SUPER_ADMIN = 'super-admin';
 
+    /** Learners: they sign in on the public site and never see the panel. */
+    public const STUDENT = 'student';
+
     /**
      * "Own content" is the one scope with teeth: the post and media policies
      * limit editing and deleting to the user's own records. The others

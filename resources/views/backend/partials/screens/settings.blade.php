@@ -1,11 +1,11 @@
 <template x-if="$store.ui.screen === 'settings'">
-<div x-data="settings" x-init="init()" class="p-6">
+<div x-data="settings" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">
       <div class="kicker">System</div>
       <h2>Settings</h2>
-      <div class="page-subtitle">How the site looks, sends mail, keeps out spam and loads on the front end</div>
+      <div class="page-subtitle">How the site looks, sends mail, keeps out spam, sells courses and loads on the front end</div>
     </div>
   </div>
 
@@ -28,6 +28,9 @@
           </template>
           <template x-if="item.key === 'frontend'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12"></rect><path d="M8 20h8M12 16v4"></path></svg>
+          </template>
+          <template x-if="item.key === 'lms'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"></path><path d="M6 12v5c3 2 9 2 12 0v-5"></path></svg>
           </template>
           <template x-if="item.key === 'redirects'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a5 5 0 0 1 0 10H9"></path><path d="m8 3-4 4 4 4"></path></svg>
@@ -71,6 +74,10 @@
 
   <template x-if="!loading && tab === 'frontend' && frontend">
     @include('backend.partials.screens.settings.frontend')
+  </template>
+
+  <template x-if="!loading && tab === 'lms' && lms">
+    @include('backend.partials.screens.settings.lms')
   </template>
 
   <template x-if="!loading && tab === 'spam' && spam">

@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'pages' && !$store.ui.editing">
-<div x-data="pages" x-init="init()" class="p-6">
+<div x-data="pages" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">
@@ -37,7 +37,7 @@
             :disabled="homeSaving || !$store.auth.can('pages.update')"
             x-effect="$el.value = home.page_id === null ? '' : String(home.page_id)"
             @change="chooseHome($event.target.value)">
-      <option value="">Latest blog posts</option>
+      <option value="">Course homepage (built in)</option>
       <template x-for="candidate in home.candidates" :key="candidate.id">
         <option :value="String(candidate.id)" x-text="candidate.title"></option>
       </template>

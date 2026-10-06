@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\DesignSettingsRequest;
 use App\Http\Requests\Settings\FrontendSettingsRequest;
+use App\Http\Requests\Settings\LmsSettingsRequest;
 use App\Http\Requests\Settings\MailSettingsRequest;
 use App\Http\Requests\Settings\SiteSettingsRequest;
 use App\Http\Requests\Settings\SpamSettingsRequest;
@@ -83,6 +84,15 @@ class SettingsController extends Controller
         $result = $guard->checkSecret($data['provider'], $secret);
 
         return response()->json($result, $result['ok'] === false ? 422 : 200);
+    }
+
+    public function updateLms(LmsSettingsRequest $request): JsonResponse
+    {
+        $this->settings->save('lms', $request->validated());
+
+        ActivityLog::record('Updated LMS settings', $this->settings->siteName());
+
+        return response()->json(['message' => 'LMS settings saved.'] + $this->payload($request));
     }
 
     public function updateDesign(DesignSettingsRequest $request): JsonResponse
@@ -175,6 +185,7 @@ class SettingsController extends Controller
             'spam' => $this->settings->forScreen('spam'),
             'frontend' => $this->settings->forScreen('frontend'),
             'design' => $this->settings->forScreen('design'),
+            'lms' => $this->settings->forScreen('lms'),
             // What the public layout prints, for the admin's section previews.
             'design_output' => ['css' => app(Design::class)->css(), 'fonts' => app(Design::class)->fontsUrl()],
             'spam_stats' => $this->spamStats(),

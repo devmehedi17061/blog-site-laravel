@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'layout'">
-<div x-data="headerFooter" x-init="init()" class="p-4 sm:p-6">
+<div x-data="headerFooter" class="p-4 sm:p-6">
 
   <div class="page-head">
     <div class="page-head-text">

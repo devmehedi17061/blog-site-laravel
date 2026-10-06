@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Course;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\Post;
@@ -165,6 +166,7 @@ class TrashController extends Controller
             $item instanceof Post => array_filter([$item->status, $item->category?->name]),
             $item instanceof Page => [$item->status, $item->slug],
             $item instanceof Media => array_filter([ucfirst((string) $item->kind), $item->human_size]),
+            $item instanceof Course => array_filter([$item->status, $item->category?->name]),
         };
 
         return [

@@ -63,7 +63,14 @@ export default function sectionLibrary() {
     fieldTypes: FIELD_TYPES,
 
     async init() {
+      // Captured now: after an await, `$root` of a screen that was closed
+      // meanwhile is no longer in the page — see alive().
+      this._root = this.$root
       await this.load()
+
+      // Left for another screen while loading: stop here. Carrying on would
+      // move the address back to #/sections and watch a component that is gone.
+      if (!this.alive()) return
 
       const wanted = this.routed()
 
@@ -76,6 +83,11 @@ export default function sectionLibrary() {
       this.$watch('$store.ui.param', () => this.openFromRoute())
     },
 
+    /** Still the screen on show — not one closed while a request was out. */
+    alive() {
+      return !!this._root?.isConnected && this.$store.ui.screen === 'sections'
+    },
+
     /** The template the current url names, if any. */
     routed() {
       const param = this.$store.ui.param
@@ -85,6 +97,11 @@ export default function sectionLibrary() {
     },
 
     openFromRoute() {
+      // The param belongs to whichever screen is open: #/layout/5 is not
+      // section 5. Without this the two builders bounced the address
+      // between each other.
+      if (!this.alive()) return
+
       const wanted = this.routed()
 
       // No id in the url, or the one already open: nothing to do. The second
@@ -131,7 +148,7 @@ export default function sectionLibrary() {
       this.dirty = false
       this.pane = 'fields'
 
-      if (template.id) this.$store.ui.go('sections', template.id)
+      if (template.id && this.alive()) this.$store.ui.go('sections', template.id)
     },
 
     async startNew() {

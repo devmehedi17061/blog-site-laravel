@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'security'">
-<div x-data="security" x-init="init()" class="p-6">
+<div x-data="security" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">

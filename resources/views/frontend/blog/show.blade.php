@@ -16,12 +16,14 @@
 @section('description', $post->meta_description ?: ($post->excerpt ?? Str::limit(strip_tags($post->body ?? ''), 155)))
 @section('og_type', 'article')
 @section('canonical', $post->canonical_url ?: route('blog.show', $post->slug))
-{{-- Social fields fall back to the search ones in the layout; the image to
+{{-- (string): a null value would make @section open a block that is never
+     closed, leaving an output buffer behind. Empty falls back in the layout.
+     Social fields fall back to the search ones in the layout; the image to
      the featured image, then the site's default share image. --}}
-@section('og_title', $post->og_title)
-@section('og_description', $post->og_description)
-@section('og_image', $post->og_image ?: $post->featuredImage?->url)
-@section('robots', $post->robots)
+@section('og_title', (string) ($post->og_title))
+@section('og_description', (string) ($post->og_description))
+@section('og_image', (string) ($post->og_image ?: $post->featuredImage?->url))
+@section('robots', (string) ($post->robots))
 
 @push('head')
 

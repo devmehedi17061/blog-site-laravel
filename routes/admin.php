@@ -35,8 +35,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin.ip')->group(function (
             ->name('two-factor.resend');
     });
 
-    // "active" signs out a suspended account on its next request.
-    Route::middleware(['auth', 'active'])->group(function () {
+    // "active" signs out a suspended account on its next request; "staff"
+    // keeps student accounts out of the panel.
+    Route::middleware(['auth', 'active', 'staff'])->group(function () {
         Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', PanelController::class)->name('panel');
 
@@ -49,6 +50,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.ip')->group(function (
             require __DIR__.'/admin/account.php';
             require __DIR__.'/admin/overview.php';
             require __DIR__.'/admin/content.php';
+            require __DIR__.'/admin/lms.php';
             require __DIR__.'/admin/media.php';
             require __DIR__.'/admin/pages.php';
             require __DIR__.'/admin/trash.php';

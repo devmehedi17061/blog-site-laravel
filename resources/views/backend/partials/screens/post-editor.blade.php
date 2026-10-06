@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'posts' && $store.ui.editing">
-<div x-data="postEditor" x-init="init()" @beforeunload.window="destroy()">
+<div x-data="postEditor" @beforeunload.window="destroy()">
 
   <div class="editor-bar">
     <button type="button" class="btn btn-ghost btn-sm" @click="backToList()">← Posts</button>

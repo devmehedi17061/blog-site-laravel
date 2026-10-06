@@ -24,15 +24,15 @@
 দরকার: PHP 8.2+, Composer, Node.js 20+, MySQL (XAMPP)।
 
 ```bash
-git clone https://github.com/<আপনার-নাম>/blog-site-laravel.git
-cd blog-site-laravel
+git clone https://github.com/<আপনার-নাম>/lms-site-laravel.git
+cd lms-site-laravel
 ```
 
-1. phpMyAdmin-এ একটা **খালি database** বানান, যেমন `my_new_site` (utf8mb4_unicode_ci)।
+1. phpMyAdmin-এ একটা **খালি database** বানান, যেমন `lms_site_laravel` (utf8mb4_unicode_ci)।
 2. `.env.example` কপি করে `.env` নাম দিন। তারপর এই লাইনগুলো ঠিক করুন:
    ```
    APP_URL=http://localhost:8080
-   DB_DATABASE=my_new_site
+   DB_DATABASE=lms_site_laravel
    DB_USERNAME=root
    DB_PASSWORD=
    ```
@@ -53,14 +53,25 @@ cd blog-site-laravel
 - Section library: Hero Slider, Testimonial Slider, Call to Action সহ ৯টা section
 - ৩টা header design আর ৩টা footer design (Header & footer builder-এ)
 - Contact form
-- Menu: Home আর Blog
-- User role আর permission
+- Menu: Home, Courses, Blog, My courses (student sign-in করা থাকলে), Sign in (sign-in না থাকলে)
+- User role আর permission — Instructor আর Student role সহ
+- LMS: course catalogue (`/courses`), student sign-up/sign-in (`/register`, `/login`), student area (`/my-courses`), certificate
+- Homepage: কোনো page homepage হিসেবে বাছাই না করলে `/`-এ built-in course homepage দেখায়
 
 ### Demo সহ চালাতে চাইলে (শুধু নিজের কম্পিউটারে)
 ```bash
 php artisan cms:install --demo
 ```
-এতে sample page আর post যোগ হয়, আর চারটা demo account (`arif@example.com` ইত্যাদি) তৈরি হয়। সবগুলোর password `password`, তাই live server-এ এই command চলবে না।
+এতে sample page, post আর ৫টা sample course (lesson সহ) যোগ হয়, আর demo account তৈরি হয়:
+
+| Email | কোথায় sign in | Role |
+| --- | --- | --- |
+| arif@example.com | `/admin` | Super Admin |
+| mira@example.com | `/admin` | Editor |
+| rafiq@example.com | `/admin` | Instructor — শুধু নিজের course |
+| student@example.com | `/login` | Student (কিছু course-এ progress আছে) |
+| karim@example.com | `/login` | Student |
+ সবগুলোর password `password`, তাই live server-এ এই command চলবে না।
 
 ---
 
@@ -106,7 +117,7 @@ npm run build
 ### খ) VPS (SSH, Git আর Node আছে এমন)
 
 ```bash
-git clone https://github.com/<আপনার-নাম>/blog-site-laravel.git mysite
+git clone https://github.com/<আপনার-নাম>/lms-site-laravel.git mysite
 cd mysite
 cp .env.example .env        # তারপর উপরের মতো production value দিন
 composer install --no-dev --optimize-autoloader
@@ -124,7 +135,7 @@ php artisan optimize
 
 Template (code) আর আপনার content আলাদা জিনিস। এখনকার page, post, ছবি আর setting সহ সাইট সরাতে চাইলে এগুলো লাগবে:
 
-1. **Database:** XAMPP phpMyAdmin → `blog_site_laravel` → Export → SQL। তারপর নতুন জায়গার phpMyAdmin → Import। এক্ষেত্রে `cms:install` চালাবেন না, content তো আগেই আছে। শুধু `php artisan migrate --force` চালান।
+1. **Database:** XAMPP phpMyAdmin → `lms_site_laravel` → Export → SQL। তারপর নতুন জায়গার phpMyAdmin → Import। এক্ষেত্রে `cms:install` চালাবেন না, content তো আগেই আছে। শুধু `php artisan migrate --force` চালান।
 2. **Upload করা ফাইল:** `storage/app/public/` folder (media আর form-uploads) কপি করুন। তারপর `php artisan storage:link` চালান।
 3. **APP_KEY:** পুরোনো `.env`-এর `APP_KEY` নতুন `.env`-এ দিন। না দিলে SMTP password-এর মতো লুকানো setting পড়া যাবে না, আবার দিতে হবে।
 4. Setting-এ গিয়ে site URL আর email setting একবার দেখে নিন।
@@ -160,3 +171,6 @@ cPanel-এ SSH না থাকলে নিজের কম্পিউটা�
 | Admin-এ ঢুকতে পারছি না (IP rule বা HTTPS lock) | `php artisan security:unlock` |
 | 2FA-র ফোন হারিয়ে গেছে | `php artisan security:reset-2fa you@example.com` |
 | নতুন admin দরকার | `php artisan cms:install --email=new@you.com` (অন্য কিছু বদলায় না) |
+| Student `/admin`-এ ঢুকতে পারছে না | এটাই নিয়ম — student `/login` দিয়ে ঢোকে, admin panel শুধু staff-এর জন্য |
+| Student password reset-এর email পাচ্ছে না | Settings → Email-এ mail সেট করুন (default "Log only" কোনো email পাঠায় না) |
+| LMS কীভাবে চালাবো | [lms-guide-bn.md](lms-guide-bn.md) দেখুন |

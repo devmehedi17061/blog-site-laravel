@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * What the site shows at "/": one published page, or the latest blog posts.
+ * What the site shows at "/": one published page, or the built-in course homepage.
  *
  * A site-wide choice, so it needs pages.update — the same permission that
  * could otherwise rewrite that page's content anyway.
@@ -49,12 +49,12 @@ class HomepageController extends Controller
 
         ActivityLog::record(
             'Changed homepage',
-            $page ? "Homepage is now \"{$page->title}\"" : 'Homepage now shows the latest blog posts',
+            $page ? "Homepage is now \"{$page->title}\"" : 'Homepage now shows the course homepage',
             $page
         );
 
         return response()->json([
-            'message' => $page ? "\"{$page->title}\" is now the homepage." : 'The homepage now shows the latest blog posts.',
+            'message' => $page ? "\"{$page->title}\" is now the homepage." : 'The homepage now shows the built-in course homepage (featured courses and latest posts).',
         ] + $this->summary());
     }
 

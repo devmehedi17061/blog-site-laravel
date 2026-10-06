@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             ContentSeeder::class,
             MenuSeeder::class,
             SettingsSeeder::class,
+            // Last: it replaces the blog demo's menus with the school's.
+            LmsSeeder::class,
         ]);
     }
 }

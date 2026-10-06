@@ -14,7 +14,7 @@ export default function menu() {
     location: 'Header',
     options: {
       locations: ['Header', 'Footer'],
-      visibilities: ['Public', 'Authenticated', 'Admin only'],
+      visibilities: ['Public', 'Authenticated', 'Guests', 'Admin only'],
       targets: ['_self', '_blank'],
       max_depth: 2,
       icons: {},
