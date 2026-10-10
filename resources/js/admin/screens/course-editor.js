@@ -1,5 +1,5 @@
 import { api } from '../api.js'
-import { uploadInChunks } from '../lib/chunkUpload.js'
+import { uploadInChunks } from '../lib/chunk-upload.js'
 
 function blankCourse() {
   return {
@@ -43,6 +43,24 @@ function blankLesson() {
     attachment: null,
     duration_minutes: 0,
     is_preview: false,
+    // Quiz lessons.
+    pass_mark: 70,
+    max_attempts: 0,
+    shuffle_questions: false,
+    questions: [],
+  }
+}
+
+function blankQuestion(type = 'single') {
+  return {
+    id: null,
+    question: '',
+    type,
+    explanation: '',
+    points: 1,
+    options: type === 'true_false'
+      ? [{ text: 'True', correct: true }, { text: 'False', correct: false }]
+      : [{ text: '', correct: true }, { text: '', correct: false }, { text: '', correct: false }],
   }
 }
 
@@ -89,6 +107,9 @@ export default function courseEditor() {
 
     // The lesson being edited in the modal: a copy, written back on "Done".
     lesson: null,
+
+    // The Announcements tab, loaded when it is first opened.
+    news: { rows: [], students: 0, loaded: false, draft: { title: '', body: '' }, errors: {}, sending: false },
 
     async init() {
       const param = this.$store.ui.param
@@ -240,6 +261,65 @@ export default function courseEditor() {
       }
     },
 
+    /** A copy just below, to save typing the same settings twice. */
+    duplicateLesson(sectionIndex, lessonIndex) {
+      const source = JSON.parse(JSON.stringify(this.curriculum[sectionIndex].lessons[lessonIndex]))
+      source.id = null
+      source.title = `${source.title} (copy)`
+      source.questions = (source.questions ?? []).map((q) => ({ ...q, id: null }))
+      this.curriculum[sectionIndex].lessons.splice(lessonIndex + 1, 0, source)
+    },
+
+    // ── drag and drop ──────────────────────────────────────────────────
+    // A lesson can be dropped on another lesson (it goes before it) or on
+    // a section (it goes to the end); a section on another section.
+    drag: null,
+    dropAt: null,
+
+    dragStart(event, kind, s, l = null) {
+      this.drag = { kind, s, l }
+      event.dataTransfer.effectAllowed = 'move'
+      event.dataTransfer.setData('text/plain', kind)
+    },
+
+    dragOver(kind, s, l = null) {
+      if (!this.drag) return
+      if (this.drag.kind === 'section' && kind !== 'section') return
+      this.dropAt = { kind, s, l }
+    },
+
+    dragEnd() {
+      this.drag = null
+      this.dropAt = null
+    },
+
+    isDropTarget(kind, s, l = null) {
+      return this.dropAt?.kind === kind && this.dropAt.s === s && this.dropAt.l === l
+    },
+
+    drop(kind, s, l = null) {
+      const from = this.drag
+      this.dragEnd()
+      if (!from) return
+
+      if (from.kind === 'section') {
+        if (kind !== 'section' || from.s === s) return
+        const [moved] = this.curriculum.splice(from.s, 1)
+        this.curriculum.splice(s, 0, moved)
+        return
+      }
+
+      const [lesson] = this.curriculum[from.s].lessons.splice(from.l, 1)
+      const target = this.curriculum[s].lessons
+      if (kind === 'lesson') {
+        // Removing it first shifts what came after it in the same section.
+        const at = from.s === s && from.l < l ? l - 1 : l
+        target.splice(at, 0, lesson)
+      } else {
+        target.push(lesson)
+      }
+    },
+
     async removeLesson(sectionIndex, lessonIndex) {
       const lesson = this.curriculum[sectionIndex].lessons[lessonIndex]
       const ok = await this.$store.dialog.confirm({
@@ -262,6 +342,13 @@ export default function courseEditor() {
       if (!this.lesson.title.trim()) {
         this.lesson._error = 'Give the lesson a title.'
         return
+      }
+      if (this.lesson.type === 'quiz') {
+        const problem = this.quizProblem(this.lesson.questions)
+        if (problem) {
+          this.lesson._error = problem
+          return
+        }
       }
       if (this.lesson._upload?.running) {
         this.lesson._error = 'Wait for the video to finish uploading.'
@@ -290,6 +377,103 @@ export default function courseEditor() {
       if (!media || !this.lesson) return
       this.lesson.media_id = media.id
       this.lesson.attachment = { id: media.id, name: media.name, url: media.url }
+    },
+
+    // ── announcements ────────────────────────────────────────────────
+    async openNews() {
+      this.tab = 'news'
+      if (this.news.loaded || this.isNew) return
+      try {
+        const payload = await api.get(`/courses/${this.draft.id}/announcements`)
+        this.news.rows = payload.data
+        this.news.students = payload.students
+        this.news.loaded = true
+      } catch (err) {
+        this.$store.ui.notify(err.message, 'warn')
+      }
+    },
+
+    async sendNews() {
+      if (this.news.sending) return
+      const ok = await this.$store.dialog.confirm({
+        title: 'Send announcement',
+        message: `“${this.news.draft.title}” goes to ${this.news.students} student${this.news.students === 1 ? '' : 's'} on this course now.`,
+        confirmLabel: 'Send',
+      })
+      if (!ok) return
+
+      this.news.sending = true
+      this.news.errors = {}
+      try {
+        const result = await api.post(`/courses/${this.draft.id}/announcements`, this.news.draft)
+        this.news.rows.unshift(result.data)
+        this.news.draft = { title: '', body: '' }
+        this.$store.ui.notify(result.message)
+      } catch (err) {
+        this.news.errors = err.errors || {}
+        if (!Object.keys(this.news.errors).length) this.$store.ui.notify(err.message, 'warn')
+      } finally {
+        this.news.sending = false
+      }
+    },
+
+    async deleteNews(row) {
+      const ok = await this.$store.dialog.confirm({ title: 'Delete announcement', message: `Delete “${row.title}” from the course page?`, confirmLabel: 'Delete', danger: true })
+      if (!ok) return
+      await api.delete(`/courses/${this.draft.id}/announcements/${row.id}`)
+      this.news.rows = this.news.rows.filter((r) => r.id !== row.id)
+    },
+
+    // ── quiz questions ─────────────────────────────────────────────────
+    addQuestion(type = 'single') {
+      this.lesson.questions.push(blankQuestion(type))
+      this.$nextTick(() => {
+        const boxes = this.$root.querySelectorAll('[data-question] textarea')
+        boxes[boxes.length - 1]?.focus()
+      })
+    },
+
+    removeQuestion(index) {
+      this.lesson.questions.splice(index, 1)
+    },
+
+    /** True/false always has the same two answers; switching to it sets them. */
+    setQuestionType(question, type) {
+      question.type = type
+      if (type === 'true_false') {
+        question.options = [{ text: 'True', correct: true }, { text: 'False', correct: false }]
+      } else if (type === 'single' && question.options.filter((o) => o.correct).length > 1) {
+        question.options.forEach((o, i) => (o.correct = i === question.options.findIndex((x) => x.correct)))
+      }
+    },
+
+    addOption(question) {
+      if (question.options.length < 10) question.options.push({ text: '', correct: false })
+    },
+
+    removeOption(question, index) {
+      if (question.options.length > 2) question.options.splice(index, 1)
+    },
+
+    /** One right answer for single / true-false; any number for multiple. */
+    markCorrect(question, index) {
+      if (question.type === 'multiple') {
+        question.options[index].correct = !question.options[index].correct
+      } else {
+        question.options.forEach((o, i) => (o.correct = i === index))
+      }
+    },
+
+    /** The first thing that would make the server refuse the quiz. */
+    quizProblem(questions) {
+      if (!questions.length) return 'Add at least one question to the quiz.'
+      for (const [n, q] of questions.entries()) {
+        const label = `Question ${n + 1}`
+        if (!q.question.trim()) return `${label} has no question text.`
+        if (q.options.some((o) => !o.text.trim())) return `${label}: every answer needs text.`
+        if (!q.options.some((o) => o.correct)) return `${label}: mark the right answer.`
+      }
+      return ''
     },
 
     // ── uploaded videos ────────────────────────────────────────────────

@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\QuizQuestion;
 use App\Support\LessonVideos;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,9 +57,33 @@ class CurriculumController extends Controller
             'sections.*.lessons.*.media_id' => ['nullable', 'integer', 'exists:media,id'],
             'sections.*.lessons.*.duration_minutes' => ['nullable', 'integer', 'min:0', 'max:6000'],
             'sections.*.lessons.*.is_preview' => ['nullable', 'boolean'],
+            // Quiz lessons.
+            'sections.*.lessons.*.pass_mark' => ['nullable', 'integer', 'between:1,100'],
+            'sections.*.lessons.*.max_attempts' => ['nullable', 'integer', 'between:0,100'],
+            'sections.*.lessons.*.shuffle_questions' => ['nullable', 'boolean'],
+            'sections.*.lessons.*.questions' => ['nullable', 'array', 'max:200'],
+            'sections.*.lessons.*.questions.*.id' => ['nullable', 'integer'],
+            'sections.*.lessons.*.questions.*.question' => ['required', 'string', 'max:2000'],
+            'sections.*.lessons.*.questions.*.type' => ['required', Rule::in(QuizQuestion::TYPES)],
+            'sections.*.lessons.*.questions.*.explanation' => ['nullable', 'string', 'max:2000'],
+            'sections.*.lessons.*.questions.*.points' => ['nullable', 'integer', 'between:1,100'],
+            'sections.*.lessons.*.questions.*.options' => ['required', 'array', 'min:2', 'max:10', function ($attribute, $options, $fail) use ($request) {
+                $type = data_get($request->all(), str_replace('.options', '.type', $attribute));
+                $right = collect($options)->filter(fn ($o) => ! empty($o['correct']))->count();
+
+                if (collect($options)->contains(fn ($o) => trim((string) ($o['text'] ?? '')) === '')) {
+                    $fail('Every answer option needs text.');
+                } elseif ($right === 0) {
+                    $fail('Mark the right answer.');
+                } elseif ($type !== 'multiple' && $right > 1) {
+                    $fail('A single-answer question has exactly one right answer.');
+                }
+            }],
         ], [
             'sections.*.title.required' => 'Every section needs a title.',
             'sections.*.lessons.*.title.required' => 'Every lesson needs a title.',
+            'sections.*.lessons.*.questions.*.question.required' => 'Every quiz question needs its question.',
+            'sections.*.lessons.*.questions.*.options.min' => 'A question needs at least two answers.',
         ]);
 
         // Uploaded videos in use before the save, to delete the ones dropped.
@@ -101,9 +126,14 @@ class CurriculumController extends Controller
                         'media_id' => $lessonData['media_id'] ?? null,
                         'duration_minutes' => (int) ($lessonData['duration_minutes'] ?? 0),
                         'is_preview' => (bool) ($lessonData['is_preview'] ?? false),
+                        'pass_mark' => (int) ($lessonData['pass_mark'] ?? 70),
+                        'max_attempts' => (int) ($lessonData['max_attempts'] ?? 0),
+                        'shuffle_questions' => (bool) ($lessonData['shuffle_questions'] ?? false),
                         'position' => $l,
                     ])->save();
                     $keptLessons[] = $lesson->id;
+
+                    $this->saveQuestions($lesson, $lessonData['type'] === 'quiz' ? ($lessonData['questions'] ?? []) : []);
                 }
             }
 
@@ -118,7 +148,8 @@ class CurriculumController extends Controller
         }
         LessonVideos::sweep($course->id, $videosAfter);
 
-        // Adding or removing lessons changes who has finished the course.
+        // Removing lessons can finish the course for someone (finishing is
+        // never undone by adding them).
         Enrollment::where('course_id', $course->id)->get()->each->syncCompletion();
 
         ActivityLog::record('Updated curriculum', $course->title, $course);
@@ -128,7 +159,7 @@ class CurriculumController extends Controller
 
     private function tree(Course $course): array
     {
-        return $course->sections()->with('lessons.attachment')->get()->map(fn (CourseSection $section) => [
+        return $course->sections()->with(['lessons.attachment', 'lessons.questions'])->get()->map(fn (CourseSection $section) => [
             'id' => $section->id,
             'title' => $section->title,
             'lessons' => $section->lessons->map(fn (Lesson $lesson) => [
@@ -146,7 +177,53 @@ class CurriculumController extends Controller
                     : null,
                 'duration_minutes' => $lesson->duration_minutes,
                 'is_preview' => $lesson->is_preview,
+                'pass_mark' => $lesson->pass_mark,
+                'max_attempts' => $lesson->max_attempts,
+                'shuffle_questions' => $lesson->shuffle_questions,
+                'questions' => $lesson->questions->map(fn (QuizQuestion $q) => [
+                    'id' => $q->id,
+                    'question' => $q->question,
+                    'type' => $q->type,
+                    'options' => collect($q->options)->map(fn ($o) => ['text' => (string) $o['text'], 'correct' => (bool) ($o['correct'] ?? false)])->values(),
+                    'explanation' => (string) $q->explanation,
+                    'points' => $q->points,
+                ])->values(),
             ])->values(),
         ])->values()->all();
+    }
+
+    /**
+     * A quiz lesson's questions, replaced as a list like the lessons are:
+     * existing ones keep their ids (so past attempts still point at them),
+     * missing ones go. A lesson that is no longer a quiz loses them all.
+     */
+    private function saveQuestions(Lesson $lesson, array $questions): void
+    {
+        $existing = $lesson->questions()->pluck('id')->all();
+        $kept = [];
+
+        foreach (array_values($questions) as $i => $data) {
+            $question = in_array((int) ($data['id'] ?? 0), $existing, true)
+                ? QuizQuestion::find($data['id'])
+                : new QuizQuestion(['lesson_id' => $lesson->id]);
+
+            $options = collect($data['options'])->map(fn ($o) => [
+                'text' => trim((string) $o['text']),
+                'correct' => (bool) ($o['correct'] ?? false),
+            ])->values()->all();
+
+            $question->fill([
+                'question' => $data['question'],
+                'type' => $data['type'],
+                'options' => $options,
+                'explanation' => $data['explanation'] ?? null,
+                'points' => (int) ($data['points'] ?? 1),
+                'position' => $i,
+            ])->save();
+
+            $kept[] = $question->id;
+        }
+
+        $lesson->questions()->whereNotIn('id', $kept ?: [0])->delete();
     }
 }

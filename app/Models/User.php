@@ -3,16 +3,19 @@
 namespace App\Models;
 
 use App\Models\Concerns\Filterable;
+use App\Support\SiteSettings;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     use Filterable, HasApiTokens, HasFactory, Notifiable;
 
@@ -27,6 +30,7 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'locale',
         'password',
         'status',
         'avatar',
@@ -89,6 +93,12 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    /** Courses saved for later. */
+    public function wishlist(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'wishlists')->withTimestamps();
+    }
+
     public function courses(): HasMany
     {
         return $this->hasMany(Course::class);
@@ -140,6 +150,15 @@ class User extends Authenticatable
     public function hasTwoFactor(): bool
     {
         return $this->two_factor_method !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * The language their emails and notifications are written in: the one
+     * they picked on the site, else the site's own.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale ?: ((string) app(SiteSettings::class)->get('site.language') ?: null);
     }
 
     public function isActive(): bool

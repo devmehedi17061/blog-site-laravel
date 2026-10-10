@@ -1,8 +1,8 @@
 import { api } from '../api.js'
 import { extend } from '../lib/extend.js'
-import { pageSections } from '../lib/sections/pageSections.js'
+import { pageSections } from '../lib/sections/page-sections.js'
 import { analyse, effectiveTitle, effectiveDescription, effectiveSlug, snippet } from '../lib/seo.js'
-import { seoPanel } from '../lib/seoPanel.js'
+import { seoPanel } from '../lib/seo-panel.js'
 import { revisionHistory } from '../lib/revisions.js'
 
 function blankPage() {

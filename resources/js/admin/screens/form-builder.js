@@ -1,6 +1,6 @@
 import { api } from '../api.js'
-import { FIELD_TYPES, blankField, hasChoices, isToggle, normaliseName, uniqueName } from '../lib/forms/fieldTypes.js'
-import { moveIn } from '../lib/sections/fieldTree.js'
+import { FIELD_TYPES, blankField, hasChoices, isToggle, normaliseName, uniqueName } from '../lib/forms/field-types.js'
+import { moveIn } from '../lib/sections/field-tree.js'
 
 function blankForm() {
   return {

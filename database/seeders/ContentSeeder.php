@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Pages\SaveSections;
 use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Media;
-use App\Actions\Pages\SaveSections;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\User;

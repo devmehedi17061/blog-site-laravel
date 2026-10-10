@@ -169,7 +169,115 @@ Student course-এ থাকলে course page-এ ১-৫ star **review** দ�
 
 ---
 
-## ৯. সমস্যা হলে
+## ৯. Coupon (discount code)
+
+Admin → **LMS → Coupons → New coupon**।
+
+| ঘর | মানে |
+| --- | --- |
+| **Code** | Student যা লিখবে, যেমন `EID50`। **Generate** চাপলে নিজে একটা বানিয়ে দেয়। ছোট/বড় হাতের অক্ষর মিলাতে হয় না |
+| **Discount** | **Percent %** (যেমন ৫০% ছাড়) অথবা **Fixed ৳** (যেমন ৫০০ টাকা ছাড়)। দাম কখনো শূন্যের নিচে যায় না |
+| **Only for courses of at least** | এর কম দামের course-এ coupon চলবে না (খালি = সব দামে) |
+| **Total uses** | মোট কতবার ব্যবহার করা যাবে (খালি = সীমা নেই) |
+| **Uses per student** | একজন student কতবার পারবে (সাধারণত ১; ০ = সীমা নেই) |
+| **Starts / Ends** | কবে থেকে কবে পর্যন্ত চলবে (খালি = এখনই, মেয়াদ নেই) |
+| **Works on** | নির্দিষ্ট course বাছাই করুন; কিছু না বাছলে **সব course-এ** চলবে |
+| **Active** | বন্ধ করলে coupon থেমে যায়, মুছে যায় না |
+
+**Student যেভাবে ব্যবহার করে:**
+- Checkout-এর ডানে **Have a coupon?** ঘরে code লিখে **Apply**। দাম সাথে সাথে কমে যায়; ভুল হলে কারণ দেখায় (মেয়াদ শেষ, এই course-এর জন্য না, শেষ হয়ে গেছে…)।
+- **Promo link**: Coupons তালিকায় 🔗 চাপলে link copy হয়, যেমন `yoursite.com/courses?coupon=EID50`। Facebook-এ দিন; যে ক্লিক করবে তার জন্য coupon checkout-এ নিজে বসে যাবে। একটা course-এর link-এ `?coupon=EID50` দিলেও কাজ করে।
+- **১০০% coupon** (যেমন scholarship): checkout-এ payment লাগে না; **Get the course for free** চাপলেই course খুলে যায়।
+
+**হিসাব ঠিক থাকে:**
+- ব্যবহার গোনা হয় আসল ব্যবহার দিয়ে। Payment **Reject** করলে সেই ব্যবহার ফেরত আসে।
+- একই payment আবার পাঠালে coupon দুইবার গোনা হয় না।
+- Payments screen-এ প্রতিটা payment-এ কোন coupon, কত ছাড় তা থাকে; Coupons তালিকায় দেখায় কতবার ব্যবহার হয়েছে আর মোট কত টাকা ছাড় দেওয়া হয়েছে।
+
+> Coupon বানাতে পারে Super Admin আর Editor। Instructor পারে না।
+
+---
+
+## ১০. Quiz
+
+Course → **Curriculum** → lesson খুলুন (বা **+ Add lesson**) → Type: **Quiz**।
+
+- **Pass mark (%)**: কত পেলে পাস (যেমন ৬০)।
+- **Tries allowed**: কতবার দেওয়া যাবে (০ = যতবার খুশি)।
+- **Shuffle**: প্রতিবার প্রশ্নের ক্রম বদলায়।
+- প্রশ্ন তিন রকম: **One right answer**, **Several right answers** (সবগুলো ঠিক বাছলে তবেই সঠিক), **True / false**।
+- ✓ বোতাম দিয়ে সঠিক উত্তর চিহ্নিত করুন। প্রতিটা প্রশ্নের **Points** আলাদা দেওয়া যায়, আর **Why** ঘরে ব্যাখ্যা লেখা যায়।
+
+**Student-এর দিক থেকে:**
+- সব প্রশ্নের উত্তর দিয়ে **Submit answers**। নম্বর server-এ হিসাব হয়, browser-এ না, তাই ফাঁকি দেওয়া যায় না।
+- **পাস করলেই** lesson complete হয় আর পরের lesson খোলে ("Lessons in order" চালু থাকলে)। Quiz-এ "Complete" বোতাম নেই।
+- ফেল করলে কোন প্রশ্ন ভুল তা দেখে, কিন্তু সঠিক উত্তর তখনই দেখায় যখন পাস করে **অথবা** আর কোনো try বাকি থাকে না, যাতে আন্দাজে পাস করা না যায়।
+- Admin বা Instructor নিজে quiz দিয়ে দেখতে পারে; নম্বর দেখায় কিন্তু save হয় না।
+
+---
+
+## ১১. Q&A (lesson-এর নিচে প্রশ্ন-উত্তর)
+
+- Lesson page-এ **Q&A** tab: course-এ enroll করা student প্রশ্ন করে, অন্যরা reply দিতে পারে।
+- Instructor/Admin-এর reply-তে **Instructor** লেখা থাকে, আর প্রশ্নটা **Answered** হয়ে যায়।
+- প্রশ্নকারী reply পেলেই notification (আর email) পায়।
+- Admin → **LMS → Q&A**: সব course-এর প্রশ্ন এক জায়গায়, **Open** (উত্তর বাকি) আগে। ওখান থেকেই reply দিন। Sidebar আর Dashboard-এ কতগুলো উত্তর বাকি তা দেখায়। Instructor শুধু নিজের course-এর প্রশ্ন দেখে।
+
+---
+
+## ১২. Announcement (course-এর সবাইকে খবর)
+
+Course editor → **Announcements** tab → শিরোনাম আর লেখা → **Send to students**।
+
+- Course-এর সব active student notification পায়।
+- Enroll করা student course page-এর উপরে announcement দেখে।
+- একসাথে অনেককে email পাঠালে সাইট ধীর হয়ে যায়, তাই announcement শুধু student panel-এর notification-এ যায়, email-এ না।
+
+---
+
+## ১৩. Wishlist আর certificate যাচাই
+
+- **Wishlist**: course page-এ দামের পাশে ♥ চাপলে course **Student panel → Wishlist**-এ জমা থাকে, পরে কেনার জন্য।
+- **Certificate যাচাই**: প্রতিটা certificate-এ একটা নম্বর থাকে (যেমন `C-00012-261008-7KQ2PA`) আর "Verify at …/certificates/verify" লেখা থাকে। যে কেউ (যেমন চাকরিদাতা) ঐ page-এ নম্বর দিয়ে দেখতে পারে certificate আসল কিনা, কার নামে, কোন course। নম্বরের শেষ অংশ গোপন key দিয়ে তৈরি, তাই আন্দাজে অন্যের নম্বর বানানো যায় না।
+
+---
+
+## ১৪. শেখা সহজ করার সুবিধা (student-এর দিক থেকে)
+
+- **Video নিজে থেকেই complete হয়**: ৯০% দেখা হলে lesson-টা নিজে থেকেই সম্পন্ন হয়ে যায়, আলাদা করে বাটন চাপতে হয় না।
+- **যেখানে থেমেছিলেন সেখান থেকে**: video আবার খুললে আগের জায়গা থেকে চলে। Dashboard-এ "যেখানে থেমেছিলেন সেখান থেকে" কার্ডে এক ক্লিকে শেষ lesson-এ যাওয়া যায়।
+- **এরপর (Up next)**: video শেষ হলে পরের lesson-এর নাম দেখায় আর কয়েক সেকেন্ড পরে নিজে থেকেই চালু হয়। "এখানেই থাকুন" চাপলে থামে।
+- **মোবাইলে**: নিচে একটা বার থাকে, যাতে আগের / সম্পন্ন / পরের বাটন আছে।
+- **Keyboard**: `N` পরের, `P` আগের, `M` সম্পন্ন, `F` ফোকাস মোড (পাশের তালিকা লুকায়)।
+- **লেসন খোঁজা আর নোট**: পাশের তালিকায় lesson খোঁজা যায়। "আমার নোট" tab-এ লেখা নোট ঐ browser-এ সেভ থাকে।
+- **শুরু করা যাক**: নতুন student-এর dashboard-এ ৫ ধাপের একটা checklist থাকে (মোবাইল নম্বর, প্রথম course, প্রথম lesson, সার্টিফিকেট)। সব শেষ হলে বা × চাপলে চলে যায়।
+- **এই সপ্তাহ আর দিনের ধারা**: গত ৭ দিনে কত lesson শেষ হয়েছে তার chart, আর টানা কত দিন শিখেছেন।
+
+---
+
+## ১৫. Admin-এর সময় বাঁচানোর টুল
+
+- **একসাথে অনেক payment verify**: Payments-এ বাম পাশের checkbox দিয়ে কয়েকটা বেছে উপরের **Verify selected** চাপুন।
+- **CSV download**: Payments আর Students screen-এ **CSV** বাটন আছে। যে filter দেওয়া আছে সেই তালিকাটাই Excel-এ খোলার মতো file হয়ে নামে (বাংলা নামও ঠিকঠাক দেখায়)।
+- **Course কপি**: Courses তালিকায় **Duplicate** চাপলে পুরো course (section, lesson, quiz সহ) একটা Draft কপি হয়। Curriculum-এ একটা lesson-ও কপি করা যায়।
+- **টেনে সাজানো**: Curriculum-এ section আর lesson-এর বাম পাশের ⋮⋮ ধরে টেনে ক্রম বদলান, তারপর Save।
+- **LMS → Reports**: মাসভিত্তিক আয় আর নতুন ভর্তি, প্রতিটা course-এ কতজন শেষ করেছে আর রেটিং, কোন payment মাধ্যম বেশি চলে, কোন coupon কতবার ব্যবহার হয়েছে, আর কোন quiz প্রশ্নে সবচেয়ে বেশি ভুল হয়। প্রতিটা chart-এর "Show as table" দিয়ে সংখ্যাগুলোও দেখা যায়।
+- **Dashboard-এর কাজের তালিকা**: verify বাকি payment আর উত্তর বাকি প্রশ্ন Dashboard-এর উপরেই দেখায়।
+
+---
+
+## ১৬. বাংলা / English
+
+- সাইটের student-দের দিক (course, checkout, player, student panel, blog, ফর্ম, header-footer) **বাংলা আর English** দুই ভাষাতেই চলে। Admin panel English-এ থাকে।
+- **কোন ভাষা দেখাবে**: header-এ **EN | বাংলা** switch আছে। Student নিজে যেটা বাছেন সেটা তার account-এ মনে থাকে। কেউ না বাছলে **Settings → Site → Language**-এ যেটা দেওয়া আছে সেটা দেখায়।
+- নোটিফিকেশন আর ইমেইলও student-এর বাছা ভাষায় যায়।
+- **Header-এ switch না থাকলে**: Builders → Header & footer-এ header-এর HTML-এ `{{ language }}` বসান। না বসালে কোণায় একটা ছোট switch নিজে থেকেই দেখায়।
+- **যা অনুবাদ হয় না**: আপনি নিজে যা লেখেন (course-এর নাম ও বিবরণ, lesson, post, page) সেগুলো যেমন লিখেছেন তেমনই দেখায়। বাংলায় চাইলে বাংলায় লিখুন।
+- **অনুবাদ বদলাতে**: `lang/bn.json` file-এ বাম পাশে English, ডান পাশে বাংলা। ডান পাশের লেখা বদলে save করলেই হয়, build লাগে না।
+
+---
+
+## ১৭. সমস্যা হলে
 
 | সমস্যা | সমাধান |
 | --- | --- |
@@ -181,5 +289,9 @@ Student course-এ থাকলে course page-এ ১-৫ star **review** দ�
 | Student `/admin`-এ ঢুকতে পারছে না | এটাই নিয়ম, student-রা `/login` ব্যবহার করবে |
 | দাম ভুল চিহ্নে দেখাচ্ছে | Settings → LMS → Currency symbol |
 | Reset password email যাচ্ছে না | Settings → Email সেট করুন |
+| Coupon কাজ করছে না | Coupons-এ status দেখুন (Active / Expired / Used up / Off), আর "Works on"-এ ঐ course আছে কিনা |
+| Student পরের lesson-এ যেতে পারছে না | আগের lesson quiz হলে পাস করতে হবে; try শেষ হয়ে গেলে quiz-এর Tries allowed বাড়ান |
 | CSS/design ভেঙে গেছে | `npm run build` |
-| সব ঠিক আছে কিনা দেখতে | `php artisan test`: ৩৩টা test চলে, সব **passed** হওয়া উচিত |
+| কিছু লেখা বাংলা হচ্ছে না | ওটা কি আপনার লেখা content (course/post-এর নাম)? তাহলে বাংলায় লিখুন। নাহলে `lang/bn.json`-এ লাইনটা যোগ করুন |
+| Design বদলালাম, browser-এ পুরনোটা দেখাচ্ছে | `npm run build` চালান; file-এর ঠিকানার শেষে `?v=` বদলে যায়, তাই browser নতুনটা নেয় |
+| সব ঠিক আছে কিনা দেখতে | `php artisan test`: ৮০টা test চলে, সব **passed** হওয়া উচিত |

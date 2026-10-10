@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\Discussion;
 use App\Models\Enrollment;
 use App\Models\Form;
 use App\Models\FormSubmission;
@@ -18,6 +19,7 @@ use App\Models\User;
 use App\Support\Site;
 use App\Support\SiteSettings;
 use App\Support\Trash;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -265,6 +267,11 @@ class DashboardController extends Controller
                 'Match the transaction IDs with your statement, then verify them under LMS → Payments.', 'payments');
         }
 
+        if ($can('courses.view') && ($n = $this->openQuestions($can)->count())) {
+            $add('warn', "{$n} student question".($n === 1 ? '' : 's').' waiting for an answer',
+                'Reply under LMS → Q&A — the student is notified.', 'discussions');
+        }
+
         if ($can('courses.view') && ($n = Course::published()->doesntHave('lessons')->count())) {
             $add('info', "{$n} live course(s) have no lessons", 'Students can enroll but have nothing to learn yet.', 'courses');
         }
@@ -458,11 +465,21 @@ class DashboardController extends Controller
             'courses' => $can('courses.view') ? Course::count() : null,
             // Waiting payments, like the inbox: the badge is a to-do list.
             'payments' => $can('enrollments.view') ? (Payment::where('status', 'Pending')->count() ?: null) : null,
+            'discussions' => $can('courses.view') ? ($this->openQuestions($can)->count() ?: null) : null,
             'students' => $can('enrollments.view') ? User::whereHas('role', fn ($q) => $q->where('slug', Role::STUDENT))->count() : null,
             // Unread, not total: a badge is a to-do list.
             'inbox' => $can('forms.view') ? FormSubmission::unread()->count() : null,
             'trash' => $can('posts.delete') || $can('pages.delete') || $can('media.delete') || $can('courses.delete') ? $this->trashCount() : null,
         ], fn ($v) => $v !== null);
+    }
+
+    /** Unanswered lesson questions on the courses this account may edit. */
+    private function openQuestions(callable $can): Builder
+    {
+        $user = request()->user();
+
+        return Discussion::questions()->where('is_resolved', false)
+            ->when($user?->role?->scope === 'Own content', fn ($q) => $q->whereHas('course', fn ($c) => $c->where('user_id', $user->id)));
     }
 
     private function trashCount(): int

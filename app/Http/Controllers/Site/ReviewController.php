@@ -17,7 +17,7 @@ class ReviewController extends Controller
         abort_unless(Lms::setting('reviews'), 404);
 
         $course = Course::published()->where('slug', $slug)->firstOrFail();
-        abort_unless($request->user()->activeEnrollmentFor($course), 403, 'Only students on this course can review it.');
+        abort_unless($request->user()->activeEnrollmentFor($course), 403, __('Only students on this course can review it.'));
 
         $data = $request->validate([
             'rating' => ['required', 'integer', 'between:1,5'],
@@ -30,6 +30,6 @@ class ReviewController extends Controller
         );
 
         return redirect()->to(route('courses.show', $course->slug).'#reviews')
-            ->with('status', 'Thanks for your review!');
+            ->with('status', __('Thanks for your review!'));
     }
 }

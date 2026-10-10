@@ -53,8 +53,9 @@
   --color-warning-100: #fdf3e2;
   --color-warning-800: #8a5a00;
 
-  --font-sans: "Archivo", system-ui, sans-serif;
-  --font-heading: "Archivo", system-ui, sans-serif;
+  /* Hind Siliguri: Bangla text and the Taka sign (৳), which Archivo lacks. */
+  --font-sans: "Archivo", "Hind Siliguri", system-ui, sans-serif;
+  --font-heading: "Archivo", "Hind Siliguri", system-ui, sans-serif;
 
   /* The system stays square — that is the mockup's signature. */
   --radius-none: 0px;

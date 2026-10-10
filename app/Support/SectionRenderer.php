@@ -47,7 +47,7 @@ class SectionRenderer
 
         return $this->renderBlock(
             $template,
-            $section->values ?? [],
+            $this->translated($section->values ?? [], $section->fieldDefinitions()),
             $this->typeMap($section->fieldDefinitions()),
             '',
             $this->pageTokens($page)
@@ -207,7 +207,35 @@ class SectionRenderer
      */
     public function renderTemplate(string $html, array $values, array $fields, array $globals = []): string
     {
-        return $this->renderBlock($html, $values, $this->typeMap($fields), '', $globals);
+        return $this->renderBlock($html, $this->translated($values, $fields), $this->typeMap($fields), '', $globals);
+    }
+
+    /**
+     * Plain text fields go through __(), group rows included, so a starter's
+     * "Home" or "Quick links" reads in the visitor's language when
+     * lang/<locale>.json has it. Text it does not know is shown as written;
+     * links, colours, images and rich text are left alone.
+     */
+    public function translated(array $values, array $fields): array
+    {
+        foreach ($fields as $field) {
+            $key = $field['key'] ?? null;
+            if ($key === null || ! array_key_exists($key, $values)) {
+                continue;
+            }
+
+            $type = $field['type'] ?? 'text';
+            if (in_array($type, ['text', 'textarea'], true) && is_string($values[$key]) && $values[$key] !== '') {
+                $values[$key] = __($values[$key]);
+            } elseif ($type === 'group' && is_array($values[$key])) {
+                $values[$key] = array_map(
+                    fn ($row) => is_array($row) ? $this->translated($row, (array) ($field['fields'] ?? [])) : $row,
+                    $values[$key],
+                );
+            }
+        }
+
+        return $values;
     }
 
     /** A template's CSS, its field tokens filled in and every rule put under $prefix. */

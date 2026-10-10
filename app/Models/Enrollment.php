@@ -77,15 +77,46 @@ class Enrollment extends Model
         return (int) min(100, round($done / $total * 100));
     }
 
-    /** Notes the date the last lesson was finished; clears it if one is undone. */
+    /**
+     * The certificate number: C-00012-261006-7KQ2PA. The last part is
+     * signed with the app key, so numbers cannot be guessed to look up who
+     * finished what on the public verification page.
+     */
+    public function certificateSerial(): ?string
+    {
+        if (! $this->completed_at) {
+            return null;
+        }
+
+        $base = 'C-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT).'-'.$this->completed_at->format('ymd');
+        $sign = strtoupper(substr(base_convert(substr(hash_hmac('sha256', $base.'|'.$this->user_id, (string) config('app.key')), 0, 12), 16, 36), 0, 6));
+
+        return $base.'-'.$sign;
+    }
+
+    /** The enrollment a certificate number belongs to, if it is genuine. */
+    public static function fromCertificateSerial(?string $serial): ?self
+    {
+        $serial = strtoupper(trim((string) $serial));
+
+        if (! preg_match('/^C-(\d{5,})-\d{6}-[A-Z0-9]{4,6}$/', $serial, $m)) {
+            return null;
+        }
+
+        $enrollment = static::with(['student:id,name', 'course' => fn ($q) => $q->with('instructor:id,name')])
+            ->where('status', 'Active')
+            ->find((int) $m[1]);
+
+        return $enrollment && hash_equals((string) $enrollment->certificateSerial(), $serial) ? $enrollment : null;
+    }
+
+    /** Notes the date the last lesson was finished. */
     public function syncCompletion(): void
     {
-        $complete = $this->progress() >= 100;
-
-        if ($complete && ! $this->completed_at) {
+        // Set once, never taken back: a certificate a student earned stays
+        // theirs when a lesson is added later or one is un-ticked.
+        if (! $this->completed_at && $this->progress() >= 100) {
             $this->forceFill(['completed_at' => now()])->save();
-        } elseif (! $complete && $this->completed_at) {
-            $this->forceFill(['completed_at' => null])->save();
         }
     }
 }

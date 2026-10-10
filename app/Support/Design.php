@@ -5,8 +5,8 @@ namespace App\Support;
 /**
  * Settings → Design: the site's colours, fonts and widths.
  *
- * The public stylesheet is built on CSS custom properties (tokens.css,
- * site.css), so a design setting is simply a property overridden on :root.
+ * The public stylesheet is built on CSS custom properties (core/tokens.css,
+ * site/layout.css), so a design setting is simply a property overridden on :root.
  * css() prints those overrides after the stylesheet; every page, section,
  * header and footer that uses the properties follows. The admin panel keeps
  * its own look — only the public layout (and the builders' previews) print
@@ -71,12 +71,20 @@ class Design
     }
 
     /** The Google Fonts stylesheet for the fonts in use, or null for system fonts only. */
+    /**
+     * Bangla text, and the Taka sign (৳), come from this font whatever font
+     * is chosen: the Latin fonts on offer have no Bengali letters, and the
+     * browser's own fallback looks out of place beside them.
+     */
+    public const BANGLA_FONT = 'Hind Siliguri';
+
     public function fontsUrl(?array $values = null): ?string
     {
         $v = $values ?? $this->values();
         $families = collect([$v['body_font'], $v['heading_font']])
             ->unique()
             ->map(fn ($font) => self::FONTS[$font]['google'])
+            ->push('Hind+Siliguri:wght@400;500;600;700')
             ->filter();
 
         return $families->isEmpty()
@@ -85,6 +93,15 @@ class Design
     }
 
     /** The :root overrides the public layout prints after its stylesheet. */
+    /** "Inter", system-ui, sans-serif → "Inter", "Hind Siliguri", system-ui, sans-serif */
+    public static function withBangla(string $stack): string
+    {
+        $parts = array_map('trim', explode(',', $stack));
+        array_splice($parts, 1, 0, ['"'.self::BANGLA_FONT.'"']);
+
+        return implode(', ', $parts);
+    }
+
     public function css(?array $values = null): string
     {
         $v = $values ?? $this->values();
@@ -105,8 +122,8 @@ class Design
             '--color-accent-900' => self::mix($p, '#000000', 0.32),
             '--color-ink' => $v['text'],
             '--color-bg' => $v['background'],
-            '--font-sans' => self::FONTS[$v['body_font']]['stack'],
-            '--font-heading' => self::FONTS[$v['heading_font']]['stack'],
+            '--font-sans' => self::withBangla(self::FONTS[$v['body_font']]['stack']),
+            '--font-heading' => self::withBangla(self::FONTS[$v['heading_font']]['stack']),
             '--site-width' => $v['site_width'].'px',
             '--content-width' => $v['content_width'].'px',
             '--site-text-size' => $v['text_size'].'px',

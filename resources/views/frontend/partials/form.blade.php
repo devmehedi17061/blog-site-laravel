@@ -14,13 +14,13 @@
   @csrf
 
   @if ($done)
-    <p class="cms-form-done" role="status">{{ $done }}</p>
+    <p class="cms-form-done" role="status">{{ __($done) }}</p>
   @endif
 
   {{-- A CAPTCHA problem is said beside the button, not counted as an answer. --}}
   @if ($bag->any() && ! ($bag->count() === 1 && $bag->has('captcha')))
     <p class="cms-form-alert" role="alert">
-      {{ $bag->count() === 1 ? 'One answer needs fixing.' : $bag->count().' answers need fixing.' }}
+      {{ trans_choice('One answer needs fixing.|:count answers need fixing.', $bag->count(), ['count' => $bag->count()]) }}
     </p>
   @endif
 
@@ -47,8 +47,8 @@
       <p class="cms-error" role="alert">{{ $bag->first('captcha') }}</p>
     @endif
     @include('frontend.partials.captcha', ['action' => 'form'])
-    <button type="submit" class="cms-form-submit">{{ $form->submit_label ?: 'Submit' }}</button>
+    <button type="submit" class="cms-form-submit">{{ __($form->submit_label ?: 'Submit') }}</button>
   @else
-    <p class="cms-form-closed">This form is not accepting replies at the moment.</p>
+    <p class="cms-form-closed">{{ __('This form is not accepting replies at the moment.') }}</p>
   @endif
 </form>

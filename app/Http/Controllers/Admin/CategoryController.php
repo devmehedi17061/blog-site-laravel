@@ -238,7 +238,7 @@ class CategoryController extends Controller
             ->groupBy('category_id')
             ->pluck('total', 'category_id');
 
-        return $categories->each(function (Category $category) use ($direct, $categories) {
+        return $categories->each(function (Category $category) use ($direct) {
             $category->setAttribute('posts_count', (int) ($direct[$category->id] ?? 0));
 
             $branch = 0;

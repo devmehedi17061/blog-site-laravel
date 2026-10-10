@@ -1,24 +1,45 @@
 @import "tailwindcss";
 
-@import "./tokens.css";
-@import "./base.css";
-@import "./components.css";
-@import "./content.css";
-@import "./editor.css";
-@import "./media.css";
-@import "./builder.css";
-@import "./forms.css";
-@import "./form-builder.css";
-@import "./inbox.css";
-@import "./menu.css";
-@import "./menu-builder.css";
-@import "./roles.css";
-@import "./settings.css";
-@import "./site.css";
-@import "./site-parts.css";
-@import "./slider.css";
-@import "./security.css";
-@import "./history.css";
-@import "./dashboard.css";
-@import "./header-footer-builder.css";
-@import "./lms.css";
+/* ══════════════════════════════════════════════════════════════════════════
+   One stylesheet for the public site and the admin panel, in three folders:
+
+     core/   tokens and the pieces both sides use (buttons, panels, inputs)
+     site/   the public site — layout, menus, forms, courses, the player
+     admin/  the admin panel's screens, one file per screen
+
+   No two files style the same selector, so the order below is only for
+   reading: core first, then the site, then the admin.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* core */
+@import "./core/tokens.css";
+@import "./core/base.css";
+@import "./core/components.css";
+@import "./core/content.css";
+
+/* public site */
+@import "./site/layout.css";
+@import "./site/navigation.css";
+@import "./site/header-footer.css";
+@import "./site/language-switch.css";
+@import "./site/slider.css";
+@import "./site/forms.css";
+@import "./site/courses.css";
+@import "./site/lesson-player.css";
+@import "./site/student-panel.css";
+
+/* admin panel */
+@import "./admin/dashboard.css";
+@import "./admin/post-editor.css";
+@import "./admin/media-library.css";
+@import "./admin/section-builder.css";
+@import "./admin/header-footer-builder.css";
+@import "./admin/form-builder.css";
+@import "./admin/form-inbox.css";
+@import "./admin/menu-builder.css";
+@import "./admin/course-editor.css";
+@import "./admin/reports.css";
+@import "./admin/roles.css";
+@import "./admin/security.css";
+@import "./admin/revisions.css";
+@import "./admin/settings.css";

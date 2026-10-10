@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\Coupon;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Support\Lms;
@@ -16,6 +18,10 @@ use Illuminate\View\View;
  * through the checkout, where the student says how they paid and the
  * place waits as Pending until an admin confirms it (or opens at once
  * when Settings → LMS → auto-approve is on).
+ *
+ * A coupon is kept in the session per course while the student checks
+ * out, and checked again on every request — a coupon that expired or ran
+ * out in the meantime simply stops applying.
  */
 class EnrollController extends Controller
 {
@@ -35,7 +41,7 @@ class EnrollController extends Controller
         Lms::enroll($user, $course, ['amount' => 0, 'payment_method' => 'Free']);
 
         return redirect()->route('learn.show', $course->slug)
-            ->with('status', 'You are enrolled. Welcome to '.$course->title.'!');
+            ->with('status', __('You are enrolled. Welcome to :course!', ['course' => $course->title]));
     }
 
     public function checkout(Request $request, string $slug): View|RedirectResponse
@@ -51,7 +57,15 @@ class EnrollController extends Controller
             return redirect()->route('courses.show', $course->slug);
         }
 
+        // A promo link: /courses/x/checkout?coupon=EID50
+        if ($request->filled('coupon')) {
+            self::applyFromLink($request, $course);
+
+            return redirect()->route('courses.checkout', $course->slug);
+        }
+
         $payments = Payment::where('user_id', $request->user()->id)->where('course_id', $course->id)->latest()->get();
+        $coupon = self::appliedCoupon($request, $course);
 
         return view('frontend.courses.checkout', [
             'course' => $course->load('thumbnail', 'instructor:id,name'),
@@ -60,6 +74,8 @@ class EnrollController extends Controller
             'rejected' => $payments->first()?->status === 'Rejected' ? $payments->first() : null,
             'methods' => Lms::paymentMethods(),
             'instructions' => (string) Lms::setting('payment_instructions'),
+            'coupon' => $coupon,
+            'price' => Lms::priceFor($course, $coupon),
         ]);
     }
 
@@ -75,6 +91,18 @@ class EnrollController extends Controller
         abort_if($course->isFree(), 404);
 
         $user = $request->user();
+        $coupon = self::appliedCoupon($request, $course);
+        $price = Lms::priceFor($course, $coupon);
+
+        // A coupon that takes the whole price off: nothing to pay or check.
+        if ($coupon && $price['total'] <= 0) {
+            Lms::enrollWithFreeCoupon($user, $course, $coupon);
+            $request->session()->forget(self::sessionKey($course));
+
+            return redirect()->route('learn.show', $course->slug)
+                ->with('status', __('Coupon :code applied — the course is yours. Welcome!', ['code' => $coupon->code]));
+        }
+
         $methods = Lms::paymentMethods();
 
         $data = $request->validate([
@@ -88,24 +116,99 @@ class EnrollController extends Controller
                     ->where(fn ($q) => $q->where('user_id', '!=', $user->id)->orWhere('course_id', '!=', $course->id)->orWhere('status', 'Verified'))
                     ->exists();
                 if ($taken) {
-                    $fail('This transaction ID has already been used. Check it, or contact us if you think this is a mistake.');
+                    $fail(__('This transaction ID has already been used. Check it, or contact us if you think this is a mistake.'));
                 }
             }],
             'proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'note' => ['nullable', 'string', 'max:500'],
         ], [
-            'proof.mimes' => 'Upload the screenshot as JPG, PNG, WebP or PDF.',
-            'proof.max' => 'The screenshot must be 5 MB or smaller.',
+            'proof.mimes' => __('Upload the screenshot as JPG, PNG, WebP or PDF.'),
+            'proof.max' => __('The screenshot must be 5 MB or smaller.'),
         ], [
             'transaction_id' => 'transaction ID',
             'sender_number' => 'number you paid from',
             'method' => 'payment method',
         ]);
 
-        $payment = Lms::submitPayment($user, $course, $data, $request->file('proof'));
+        $payment = Lms::submitPayment($user, $course, $data, $request->file('proof'), $coupon);
+        $request->session()->forget(self::sessionKey($course));
 
         return $payment->enrollment?->isActive()
-            ? redirect()->route('learn.show', $course->slug)->with('status', 'Payment received — the course is open. We will verify the payment shortly.')
-            : redirect()->route('student.payments')->with('status', 'Thanks! Your payment ('.$payment->invoiceNumber().') is waiting for verification — we will notify you as soon as it is checked.');
+            ? redirect()->route('learn.show', $course->slug)->with('status', __('Payment received — the course is open. We will verify the payment shortly.'))
+            : redirect()->route('student.payments')->with('status', __('Thanks! Your payment (:invoice) is waiting for verification — we will notify you as soon as it is checked.', ['invoice' => $payment->invoiceNumber()]));
+    }
+
+    // ── coupons ────────────────────────────────────────────────────────────
+
+    public function applyCoupon(Request $request, string $slug): RedirectResponse
+    {
+        $course = CourseController::findForViewer($request, $slug);
+        $request->validate(['code' => ['required', 'string', 'max:40']], ['code.required' => __('Type a coupon code.')]);
+
+        $coupon = Coupon::findByCode($request->input('code'));
+        $problem = $coupon ? $coupon->problemFor($request->user(), $course) : __('That coupon code does not exist.');
+
+        if ($problem) {
+            return back()->withErrors(['code' => $problem])->withInput();
+        }
+
+        $request->session()->put(self::sessionKey($course), $coupon->code);
+
+        return back()->with('status', __('Coupon :code applied — :discount.', ['code' => $coupon->code, 'discount' => $coupon->label()]));
+    }
+
+    public function removeCoupon(Request $request, string $slug): RedirectResponse
+    {
+        $course = CourseController::findForViewer($request, $slug);
+        // Empty, not forgotten: a catalogue-wide coupon must not come back.
+        $request->session()->put(self::sessionKey($course), '');
+
+        return back()->with('status', __('Coupon removed.'));
+    }
+
+    /**
+     * The coupon this visitor applied to this course, if it still applies —
+     * or one from a catalogue promo link (/courses?coupon=X) that is valid
+     * for this course.
+     */
+    public static function appliedCoupon(Request $request, Course $course): ?Coupon
+    {
+        if (! $request->session()->has(self::sessionKey($course)) && ($any = $request->session()->get('coupons.any'))) {
+            $coupon = Coupon::findByCode($any);
+
+            return $coupon && ! $coupon->problemFor($request->user(), $course) ? $coupon : null;
+        }
+
+        $code = $request->session()->get(self::sessionKey($course));
+        $coupon = $code ? Coupon::findByCode($code) : null;
+
+        if ($code && (! $coupon || $coupon->problemFor($request->user(), $course))) {
+            $request->session()->forget(self::sessionKey($course));
+
+            return null;
+        }
+
+        return $coupon;
+    }
+
+    /** ?coupon=CODE on a course page or the checkout: applied when it is valid. */
+    public static function applyFromLink(Request $request, Course $course): void
+    {
+        $coupon = Coupon::findByCode($request->query('coupon'));
+        $problem = $coupon ? $coupon->problemFor($request->user(), $course) : __('That coupon code does not exist.');
+
+        if ($problem) {
+            $request->session()->flash('coupon_error', $problem);
+
+            return;
+        }
+
+        $request->session()->put(self::sessionKey($course), $coupon->code);
+        $request->session()->flash('status', __('Coupon :code applied — :discount.', ['code' => $coupon->code, 'discount' => $coupon->label()]));
+    }
+
+    private static function sessionKey(Course $course): string
+    {
+        return 'coupons.'.$course->id;
     }
 }

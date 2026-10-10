@@ -5,8 +5,8 @@
 <article class="panel course-card transition duration-150 hover:-translate-y-0.5 hover:shadow-md">
   <div class="flex items-center gap-2 bg-neutral-900 px-4 py-2.5 font-heading text-[10px] font-bold tracking-[0.1em] text-neutral-300 uppercase">
     <span class="h-2 w-2 bg-accent"></span>
-    <span class="truncate">{{ $course->category?->name ?? 'Course' }}</span>
-    <span class="ml-auto font-sans text-[11px] font-normal tracking-normal text-neutral-400 normal-case">{{ $course->level }}</span>
+    <span class="truncate">{{ $course->category?->name ?? __('Course') }}</span>
+    <span class="ml-auto font-sans text-[11px] font-normal tracking-normal text-neutral-400 normal-case">{{ __($course->level) }}</span>
   </div>
 
   <a href="{{ route('courses.show', $course->slug) }}" class="course-card-thumb" tabindex="-1" aria-hidden="true">
@@ -17,7 +17,7 @@
       <span class="course-card-thumb-blank">{{ mb_strtoupper(mb_substr($course->title, 0, 1)) }}</span>
     @endif
     @if ($course->is_featured)
-      <span class="course-card-badge">Featured</span>
+      <span class="course-card-badge">{{ __('Featured') }}</span>
     @endif
   </a>
 
@@ -39,7 +39,7 @@
         <span>{{ $course->instructor->name }}</span>
       @endif
       @isset($course->lessons_count)
-        <span>{{ $course->lessons_count }} {{ \Illuminate\Support\Str::plural('lesson', $course->lessons_count) }}</span>
+        <span>{{ trans_choice(':count lesson|:count lessons', $course->lessons_count, ['count' => $course->lessons_count]) }}</span>
       @endisset
       @if ($rating)
         <span>@include('frontend.partials.stars', ['value' => $rating]) {{ number_format($rating, 1) }}</span>
@@ -48,7 +48,7 @@
 
     <div class="mt-1 flex items-center gap-2 border-t border-line pt-3">
       @if ($course->isFree())
-        <span class="price price-free">Free</span>
+        <span class="price price-free">{{ __('Free') }}</span>
       @else
         <span class="price">{{ \App\Support\Lms::money($course->currentPrice()) }}</span>
         @if ($course->onSale())
@@ -57,7 +57,7 @@
       @endif
       <a href="{{ route('courses.show', $course->slug) }}"
          class="ml-auto font-heading text-[12px] font-bold text-accent no-underline hover:text-accent-700">
-        View course →
+        {{ __('View course') }} →
       </a>
     </div>
   </div>

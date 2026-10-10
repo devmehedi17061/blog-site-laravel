@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Support\CsvExport;
 use App\Support\Lms;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * LMS → Payments: what students reported, with what helps to check it — the
@@ -28,21 +30,7 @@ class PaymentController extends Controller
             'per_page' => ['nullable', 'integer', 'between:5,100'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
-        $search = trim((string) ($data['search'] ?? ''));
-
-        $payments = $this->scoped($request)
-            ->with(['student:id,name,email,phone', 'course:id,title,slug,user_id', 'reviewer:id,name'])
-            ->status($data['status'] ?? null)
-            ->when($data['method'] ?? null, fn (Builder $q, $m) => $q->where('method', $m))
-            ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $q) use ($search) {
-                $q->where('transaction_id', 'like', "%{$search}%")
-                    ->orWhere('sender_number', 'like', "%{$search}%")
-                    ->orWhereHas('student', fn (Builder $s) => $s->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
-            }))
-            // Waiting ones first, oldest first among them: first come, first checked.
-            ->orderByRaw("CASE WHEN status = 'Pending' THEN 0 ELSE 1 END")
-            ->orderByRaw("CASE WHEN status = 'Pending' THEN created_at END ASC")
-            ->latest()
+        $payments = $this->filtered($request, $data)
             ->paginate((int) ($data['per_page'] ?? 10))
             ->withQueryString();
 
@@ -91,7 +79,71 @@ class PaymentController extends Controller
         ]);
     }
 
+    /**
+     * "Verify selected": the ticked payments that are still waiting, each
+     * the same as pressing Verify on it (course opens, student notified).
+     */
+    public function bulkVerify(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->hasPermission('enrollments.update'), 403);
+        $data = $request->validate(['ids' => ['required', 'array', 'min:1', 'max:100'], 'ids.*' => ['integer']]);
+
+        $payments = $this->scoped($request)->whereIn('id', $data['ids'])->where('status', 'Pending')->get();
+        foreach ($payments as $payment) {
+            Lms::verifyPayment($payment, $request->user());
+        }
+
+        return response()->json([
+            'message' => $payments->count() === 1 ? '1 payment verified.' : $payments->count().' payments verified — each student has been notified.',
+        ]);
+    }
+
+    /** The list as on screen (same filters), as a CSV file. */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Enrollment::class);
+        $data = $request->validate([
+            'search' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string'],
+            'method' => ['nullable', 'string', 'max:60'],
+        ]);
+
+        $rows = $this->filtered($request, $data)->lazy(200)->map(fn (Payment $p) => [
+            $p->invoiceNumber(), $p->created_at?->format('Y-m-d H:i'), $p->status,
+            $p->student?->name, $p->student?->email, $p->student?->phone, $p->course?->title,
+            (float) $p->amount, (float) $p->expected_amount, (float) $p->discount, $p->coupon_code,
+            $p->method, $p->sender_number, $p->transaction_id,
+            $p->reviewer?->name, $p->reviewed_at?->format('Y-m-d H:i'), $p->rejection_reason,
+        ]);
+
+        return CsvExport::download('payments', [
+            'Invoice', 'Sent', 'Status', 'Student', 'Email', 'Phone', 'Course',
+            'Amount', 'Course price', 'Coupon discount', 'Coupon', 'Method', 'Paid from', 'Transaction ID',
+            'Checked by', 'Checked at', 'Rejection reason',
+        ], $rows);
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────
+
+    /** Search, status and method — shared by the list and its CSV. */
+    private function filtered(Request $request, array $data): Builder
+    {
+        $search = trim((string) ($data['search'] ?? ''));
+
+        return $this->scoped($request)
+            ->with(['student:id,name,email,phone', 'course:id,title,slug,user_id', 'reviewer:id,name'])
+            ->status($data['status'] ?? null)
+            ->when($data['method'] ?? null, fn (Builder $q, $m) => $q->where('method', $m))
+            ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $q) use ($search) {
+                $q->where('transaction_id', 'like', "%{$search}%")
+                    ->orWhere('sender_number', 'like', "%{$search}%")
+                    ->orWhereHas('student', fn (Builder $s) => $s->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+            }))
+            // Waiting ones first, oldest first among them: first come, first checked.
+            ->orderByRaw("CASE WHEN status = 'Pending' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status = 'Pending' THEN created_at END ASC")
+            ->latest();
+    }
 
     private function authorizePayment(Request $request, Payment $payment): void
     {

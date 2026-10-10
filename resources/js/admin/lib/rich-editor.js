@@ -4,7 +4,7 @@ import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Color, TextStyle } from '@tiptap/extension-text-style'
-import { PostImage } from './postImage.js'
+import { PostImage } from './post-image.js'
 
 /**
  * TipTap set-up for the post body.

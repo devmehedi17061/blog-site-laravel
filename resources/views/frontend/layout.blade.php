@@ -123,6 +123,13 @@
     @endif
   </div>
 
+  {{-- A header built without the {{ language }} switch still lets visitors
+       change language: a small switch in the corner instead. --}}
+  @php $headerPart = ($sitePartDraft['header'] ?? null) ?? \App\Models\SitePart::active('header'); @endphp
+  @if (! ($previewing ?? false) && ! $headerPart?->usesToken('language'))
+    <div class="lang-float">@include('frontend.partials.language-switch')</div>
+  @endif
+
   {{-- Most views want the usual centred column. A view that builds its own
        full-width bands — a page made of sections — overrides this. It
        grows to fill the screen (flex-1), which is what keeps the footer down. --}}

@@ -12,6 +12,21 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        // Readable names in public/build — css/app.css, js/admin.js,
+        // js/site.js — instead of app-QWdAwHX-.css. Browsers still get a
+        // fresh copy after every build: AppServiceProvider adds ?v=<content
+        // hash> to each URL.
+        rollupOptions: {
+            output: {
+                entryFileNames: 'js/[name].js',
+                chunkFileNames: 'js/[name].js',
+                assetFileNames: ({ names }) => (names?.[0] ?? '').endsWith('.css')
+                    ? 'css/[name][extname]'
+                    : 'assets/[name][extname]',
+            },
+        },
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

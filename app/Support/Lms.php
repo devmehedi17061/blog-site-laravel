@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\ActivityLog;
+use App\Models\Coupon;
+use App\Models\CouponRedemption;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
@@ -104,29 +106,36 @@ class Lms
      * when the course opens at once and the payment still waits for an
      * admin to check it (a rejection then closes the course again).
      */
-    public static function submitPayment(User $student, Course $course, array $data, ?UploadedFile $proof = null): Payment
+    public static function submitPayment(User $student, Course $course, array $data, ?UploadedFile $proof = null, ?Coupon $coupon = null): Payment
     {
+        $price = self::priceFor($course, $coupon);
+
         $enrollment = self::enroll($student, $course, [
-            'amount' => $data['amount'] ?? $course->currentPrice(),
+            'amount' => $data['amount'] ?? $price['total'],
             'payment_method' => $data['method'],
             'transaction_id' => $data['transaction_id'],
             'note' => $data['note'] ?? null,
         ]);
 
         // Another payment for this course still waiting is replaced: the
-        // student is correcting what they sent, not paying twice.
+        // student is correcting what they sent, not paying twice. Its
+        // coupon use goes with it.
         $replaced = Payment::where('enrollment_id', $enrollment->id)->where('status', 'Pending')->get();
         foreach ($replaced as $old) {
+            CouponRedemption::where('payment_id', $old->id)->delete();
             self::deleteProof($old);
             $old->delete();
         }
 
-        return Payment::create([
+        $payment = Payment::create([
             'user_id' => $student->id,
             'course_id' => $course->id,
             'enrollment_id' => $enrollment->id,
-            'amount' => $data['amount'] ?? $course->currentPrice(),
-            'expected_amount' => $course->currentPrice(),
+            'coupon_id' => $coupon?->id,
+            'coupon_code' => $coupon?->code,
+            'discount' => $price['discount'],
+            'amount' => $data['amount'] ?? $price['total'],
+            'expected_amount' => $price['total'],
             'method' => $data['method'],
             'sender_number' => $data['sender_number'] ?? null,
             'transaction_id' => trim($data['transaction_id']),
@@ -134,6 +143,49 @@ class Lms
             'note' => $data['note'] ?? null,
             'status' => 'Pending',
         ]);
+
+        if ($coupon && $price['discount'] > 0) {
+            CouponRedemption::create([
+                'coupon_id' => $coupon->id, 'user_id' => $student->id, 'course_id' => $course->id,
+                'payment_id' => $payment->id, 'discount' => $price['discount'],
+            ]);
+        }
+
+        return $payment;
+    }
+
+    /**
+     * What a course costs with a coupon: the price, the money off, the total.
+     *
+     * @return array{price: float, discount: float, total: float}
+     */
+    public static function priceFor(Course $course, ?Coupon $coupon = null): array
+    {
+        $price = $course->currentPrice();
+        $discount = $coupon ? $coupon->discountFor($price) : 0.0;
+
+        return ['price' => $price, 'discount' => $discount, 'total' => round(max(0, $price - $discount), 2)];
+    }
+
+    /**
+     * A coupon that takes the whole price off: no payment to check, the
+     * course opens now and the use is counted.
+     */
+    public static function enrollWithFreeCoupon(User $student, Course $course, Coupon $coupon): Enrollment
+    {
+        $price = self::priceFor($course, $coupon);
+
+        $enrollment = self::enroll($student, $course, [
+            'amount' => 0,
+            'payment_method' => 'Coupon '.$coupon->code,
+        ], active: true);
+
+        CouponRedemption::create([
+            'coupon_id' => $coupon->id, 'user_id' => $student->id, 'course_id' => $course->id,
+            'discount' => $price['discount'],
+        ]);
+
+        return $enrollment;
     }
 
     /** The payment checks out: the course opens and the student is told. */
@@ -155,11 +207,12 @@ class Lms
         ActivityLog::record('Verified payment', $payment->invoiceNumber().' · '.$payment->student?->name.' → '.$payment->course?->title, $payment);
 
         self::notify($payment->student, new StudentNotice(
-            'Payment verified — '.$payment->course?->title.' is open',
-            'We checked your payment of '.self::money($payment->amount).' ('.$payment->method.', '.$payment->transaction_id.'). The course is open — enjoy learning!',
+            'Payment verified — :course is open',
+            'We checked your payment of :amount (:method, :transaction). The course is open — enjoy learning!',
             $payment->course ? route('learn.show', $payment->course->slug) : null,
             'success',
             'Start learning',
+            params: ['course' => $payment->course?->title, 'amount' => self::money($payment->amount), 'method' => $payment->method, 'transaction' => $payment->transaction_id],
         ));
     }
 
@@ -170,6 +223,9 @@ class Lms
     public static function rejectPayment(Payment $payment, User $reviewer, string $reason): void
     {
         $payment->update(['status' => 'Rejected', 'reviewed_by' => $reviewer->id, 'reviewed_at' => now(), 'rejection_reason' => $reason]);
+
+        // A rejected payment gives its coupon use back.
+        CouponRedemption::where('payment_id', $payment->id)->delete();
 
         // A place that only exists because of this payment goes with it. One
         // paid another way (or verified before) is left alone.
@@ -182,11 +238,12 @@ class Lms
         ActivityLog::record('Rejected payment', $payment->invoiceNumber().' · '.$reason, $payment);
 
         self::notify($payment->student, new StudentNotice(
-            'Payment not verified — '.$payment->course?->title,
-            'We could not verify your payment ('.$payment->method.', '.$payment->transaction_id.'): '.$reason.' You can send the payment details again.',
+            'Payment not verified — :course',
+            'We could not verify your payment (:method, :transaction): :reason You can send the payment details again.',
             $payment->course ? route('courses.checkout', $payment->course->slug) : null,
             'warn',
             'Send again',
+            params: ['course' => $payment->course?->title, 'method' => $payment->method, 'transaction' => $payment->transaction_id, 'reason' => $reason],
         ));
     }
 

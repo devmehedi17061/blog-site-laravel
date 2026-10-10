@@ -12,6 +12,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -43,6 +44,17 @@ class AppServiceProvider extends ServiceProvider
 
         // Settings → Security: how long an idle panel session lasts.
         config(['session.lifetime' => max(5, (int) $this->app->make(SiteSettings::class)->get('security.idle_minutes', 120))]);
+
+        // Built files keep plain names (build/css/app.css, build/js/admin.js —
+        // see vite.config.js), so each URL carries a short hash of the file
+        // instead: a new build gets a new URL and browsers fetch it fresh.
+        Vite::createAssetPathsUsing(function (string $path, ?bool $secure = null): string {
+            static $versions = [];
+            $file = public_path($path);
+            $versions[$path] ??= is_file($file) ? substr(md5_file($file), 0, 10) : null;
+
+            return asset($path, $secure).($versions[$path] ? '?v='.$versions[$path] : '');
+        });
 
         // `$site` in every view: the name, titles, dates, logo, contacts.
         View::share('site', $this->app->make(Site::class));

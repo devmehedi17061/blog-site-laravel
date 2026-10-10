@@ -1,11 +1,11 @@
 import { api } from '../api.js'
-import * as tree from '../lib/treeList.js'
+import * as tree from '../lib/tree-list.js'
 
 /**
  * Menu control.
  *
  * The menu is edited as a flat list where each row carries its own depth,
- * which lib/treeList.js owns — the same shape the category tree uses. What
+ * which lib/tree-list.js owns — the same shape the category tree uses. What
  * is dragged here is exactly what gets saved.
  */
 export default function menu() {

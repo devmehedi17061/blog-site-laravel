@@ -18,7 +18,9 @@
       <a @if ($item->url) href="{{ $item->url }}" @endif class="site-menu-link"
          @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
         {!! \App\Support\MenuIcons::svg($item->icon) !!}
-        <span class="site-menu-text">{{ $item->label }}</span>
+        {{-- Standard labels ("Courses", "Sign in") follow the visitor's language;
+             anything else shows as typed. --}}
+        <span class="site-menu-text">{{ __($item->label) }}</span>
 
         @if ($node['children'])
           <span class="site-menu-more" aria-hidden="true">›</span>

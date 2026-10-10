@@ -80,6 +80,16 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(CourseAnnouncement::class)->latest();
+    }
+
+    public function discussions(): HasMany
+    {
+        return $this->hasMany(Discussion::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(CourseReview::class);
@@ -133,7 +143,7 @@ class Course extends Model
 
     public function priceLabel(): string
     {
-        return $this->isFree() ? 'Free' : Lms::money($this->currentPrice());
+        return $this->isFree() ? __('Free') : Lms::money($this->currentPrice());
     }
 
     /** The first lesson in curriculum order, where "Start" leads. */

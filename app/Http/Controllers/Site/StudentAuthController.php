@@ -51,17 +51,17 @@ class StudentAuthController extends Controller
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             RateLimiter::hit($key, 15 * 60);
-            throw ValidationException::withMessages(['email' => 'That email and password do not match an account.']);
+            throw ValidationException::withMessages(['email' => __('That email and password do not match an account.')]);
         }
 
         if (! $user->isActive()) {
-            throw ValidationException::withMessages(['email' => 'This account is suspended. Please contact us.']);
+            throw ValidationException::withMessages(['email' => __('This account is suspended. Please contact us.')]);
         }
 
         // Accounts that use two-factor must pass it, which only the panel's
         // sign-in can ask for.
         if ($user->hasTwoFactor()) {
-            throw ValidationException::withMessages(['email' => 'This account uses two-factor sign-in. Sign in at '.route('admin.login').'.']);
+            throw ValidationException::withMessages(['email' => __('This account uses two-factor sign-in. Sign in at :url.', ['url' => route('admin.login')])]);
         }
 
         RateLimiter::clear($key);
@@ -77,7 +77,7 @@ class StudentAuthController extends Controller
         $this->rememberRedirect($request);
 
         if (! Lms::setting('allow_registration')) {
-            return redirect()->route('student.login')->with('status', 'New accounts are not open right now.');
+            return redirect()->route('student.login')->with('status', __('New accounts are not open right now.'));
         }
 
         return view('frontend.student.register');
@@ -85,7 +85,7 @@ class StudentAuthController extends Controller
 
     public function register(Request $request): RedirectResponse
     {
-        abort_unless(Lms::setting('allow_registration'), 403, 'New accounts are not open right now.');
+        abort_unless(Lms::setting('allow_registration'), 403, __('New accounts are not open right now.'));
 
         // A field people cannot see; bots fill every box they find.
         if (filled($request->input('website'))) {
@@ -97,7 +97,7 @@ class StudentAuthController extends Controller
             'email' => ['required', 'email', 'max:190', 'unique:users,email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
         ], [
-            'email.unique' => 'An account already uses this email. Sign in instead, or reset the password.',
+            'email.unique' => __('An account already uses this email. Sign in instead, or reset the password.'),
         ]);
 
         $user = Lms::createStudent($data['name'], $data['email'], $data['password']);
@@ -107,7 +107,7 @@ class StudentAuthController extends Controller
         ActivityLog::record('Student registered', $user->name.' <'.$user->email.'>', $user);
 
         return redirect()->intended(route('student.dashboard'))
-            ->with('status', 'Welcome, '.Str::before($user->name, ' ').'! Your account is ready.');
+            ->with('status', __('Welcome, :name! Your account is ready.', ['name' => Str::before($user->name, ' ')]));
     }
 
     public function logout(Request $request): RedirectResponse
@@ -152,7 +152,7 @@ class StudentAuthController extends Controller
 
         // The same answer whether or not the email has an account, so the
         // form cannot be used to find out who is registered.
-        return back()->with('status', 'If that email has an account, a reset link is on its way. Check your inbox.');
+        return back()->with('status', __('If that email has an account, a reset link is on its way. Check your inbox.'));
     }
 
     public function showReset(Request $request, string $token): View
@@ -177,7 +177,7 @@ class StudentAuthController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('student.login')->with('status', 'Password changed. Sign in with the new one.')
+            ? redirect()->route('student.login')->with('status', __('Password changed. Sign in with the new one.'))
             : back()->withErrors(['email' => __($status)]);
     }
 }

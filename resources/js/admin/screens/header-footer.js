@@ -3,7 +3,7 @@ import { debounce } from '../lib/debounce.js'
 import { extend } from '../lib/extend.js'
 import { tokenFor } from '../lib/sections/template.js'
 import sectionLibrary from './section-library.js'
-import { insertAtCursor } from '../lib/codeEditor.js'
+import { insertAtCursor } from '../lib/code-editor.js'
 
 /**
  * Builders → Header & footer.

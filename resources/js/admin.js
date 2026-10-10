@@ -13,6 +13,9 @@ import courseEditor from './admin/screens/course-editor.js'
 import enrollments from './admin/screens/enrollments.js'
 import students from './admin/screens/students.js'
 import payments from './admin/screens/payments.js'
+import coupons from './admin/screens/coupons.js'
+import discussions from './admin/screens/discussions.js'
+import reports from './admin/screens/reports.js'
 import media from './admin/screens/media.js'
 import mediaPicker from './admin/screens/media-picker.js'
 import pages from './admin/screens/pages.js'
@@ -30,10 +33,10 @@ import security from './admin/screens/security.js'
 import account from './admin/screens/account.js'
 import trash from './admin/screens/trash.js'
 import headerFooter from './admin/screens/header-footer.js'
-import { fieldEditor } from './admin/lib/sections/fieldEditor.js'
-import { codeEditor } from './admin/lib/codeEditor.js'
+import { fieldEditor } from './admin/lib/sections/field-editor.js'
+import { codeEditor } from './admin/lib/code-editor.js'
 
-// x-code: the HTML and CSS boxes become code editors (lib/codeEditor.js).
+// x-code: the HTML and CSS boxes become code editors (lib/code-editor.js).
 Alpine.plugin(codeEditor)
 
 Alpine.store('auth', authStore)
@@ -49,6 +52,9 @@ Alpine.data('courseEditor', courseEditor)
 Alpine.data('enrollments', enrollments)
 Alpine.data('students', students)
 Alpine.data('payments', payments)
+Alpine.data('coupons', coupons)
+Alpine.data('discussions', discussions)
+Alpine.data('reports', reports)
 Alpine.data('media', media)
 Alpine.data('mediaPicker', mediaPicker)
 Alpine.data('pages', pages)

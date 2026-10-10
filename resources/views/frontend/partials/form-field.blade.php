@@ -23,18 +23,18 @@
              @checked($old)
              @if ($field->required) required @endif
              @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
-      <span>{{ $field->label }}@if ($field->required)<span class="cms-required" aria-hidden="true">*</span>@endif</span>
+      <span>{{ __($field->label) }}@if ($field->required)<span class="cms-required" aria-hidden="true">*</span>@endif</span>
     </label>
   @else
     <label class="cms-label" for="{{ $id }}">
-      {{ $field->label }}
+      {{ __($field->label) }}
       @if ($field->required)<span class="cms-required" aria-hidden="true">*</span>@endif
     </label>
   @endif
 
   @if ($field->type === 'textarea')
     <textarea class="cms-input" id="{{ $id }}" name="{{ $name }}" rows="5"
-              placeholder="{{ $field->placeholder }}"
+              placeholder="{{ $field->placeholder ? __($field->placeholder) : '' }}"
               @if ($field->required) required @endif
               @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>{{ $old }}</textarea>
 
@@ -42,19 +42,19 @@
     <select class="cms-input" id="{{ $id }}" name="{{ $name }}"
             @if ($field->required) required @endif
             @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
-      <option value="">{{ $field->placeholder ?: 'Choose…' }}</option>
+      <option value="">{{ __($field->placeholder ?: 'Choose…') }}</option>
       @foreach ($field->choices() as $choice)
-        <option value="{{ $choice }}" @selected($old === $choice)>{{ $choice }}</option>
+        <option value="{{ $choice }}" @selected($old === $choice)>{{ __($choice) }}</option>
       @endforeach
     </select>
 
   @elseif ($field->type === 'radio')
-    <div class="cms-choices" role="radiogroup" aria-label="{{ $field->label }}">
+    <div class="cms-choices" role="radiogroup" aria-label="{{ __($field->label) }}">
       @foreach ($field->choices() as $index => $choice)
         <label class="cms-check" for="{{ $id }}-{{ $index }}">
           <input type="radio" id="{{ $id }}-{{ $index }}" name="{{ $name }}" value="{{ $choice }}"
                  @checked($old === $choice)>
-          <span>{{ $choice }}</span>
+          <span>{{ __($choice) }}</span>
         </label>
       @endforeach
     </div>
@@ -65,7 +65,7 @@
         <label class="cms-check" for="{{ $id }}-{{ $index }}">
           <input type="checkbox" id="{{ $id }}-{{ $index }}" name="fields[{{ $field->name }}][]" value="{{ $choice }}"
                  @checked(is_array($old) && in_array($choice, $old, true))>
-          <span>{{ $choice }}</span>
+          <span>{{ __($choice) }}</span>
         </label>
       @endforeach
     </div>
@@ -77,13 +77,13 @@
 
   @elseif (! $field->isToggle())
     <input type="{{ $field->type }}" class="cms-input" id="{{ $id }}" name="{{ $name }}"
-           value="{{ $old }}" placeholder="{{ $field->placeholder }}"
+           value="{{ $old }}" placeholder="{{ $field->placeholder ? __($field->placeholder) : '' }}"
            @if ($field->required) required @endif
            @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
   @endif
 
   @if ($field->help)
-    <p class="cms-help" id="{{ $id }}-help">{{ $field->help }}</p>
+    <p class="cms-help" id="{{ $id }}-help">{{ __($field->help) }}</p>
   @endif
 
   @if ($error)

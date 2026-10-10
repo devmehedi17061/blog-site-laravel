@@ -92,6 +92,9 @@
                   <a x-show="row.status === 'Published'" :href="row.public_url" target="_blank" rel="noopener" title="View on the site" class="row-action">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
                   </a>
+                  <button x-show="$store.auth.can('courses.create')" @click="duplicate(row)" title="Duplicate as a draft" class="row-action">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="13" height="13"/><path d="M16 8V3H3v13h5"/></svg>
+                  </button>
                   <button x-show="row.can.update" @click="openEdit(row)" title="Edit" class="row-action">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                   </button>

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\SectionTemplate;
 use App\Models\User;
 use App\Support\PageTemplates;
+use App\Support\SliderSections;
 use Illuminate\Database\Seeder;
 
 /**
@@ -18,7 +19,7 @@ class SectionLibrarySeeder extends Seeder
         $owner = User::where('email', 'arif@example.com')->value('id');
 
         // The slider sections (App\Support\SliderSections) join the starters.
-        foreach (PageTemplates::librarySections() + \App\Support\SliderSections::sections() as $slug => $template) {
+        foreach (PageTemplates::librarySections() + SliderSections::sections() as $slug => $template) {
             $existing = SectionTemplate::where('slug', $slug)->first();
 
             // Markup someone has since edited in the builder is left alone;

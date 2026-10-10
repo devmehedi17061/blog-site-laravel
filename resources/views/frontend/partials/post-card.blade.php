@@ -1,7 +1,7 @@
 <article class="panel flex flex-col transition duration-150 hover:-translate-y-0.5 hover:shadow-md">
   <div class="flex items-center gap-2 bg-neutral-900 px-4 py-2.5 font-heading text-[10px] font-bold tracking-[0.1em] text-neutral-300 uppercase">
     <span class="h-2 w-2 bg-accent"></span>
-    <span>{{ $post->category?->name ?? 'Uncategorised' }}</span>
+    <span>{{ $post->category?->name ?? __('Uncategorised') }}</span>
     <time class="ml-auto font-sans text-[11px] font-normal tracking-normal text-neutral-400 normal-case"
           datetime="{{ $post->published_at?->toDateString() }}">
       {{ $site->date($post->published_at) }}
@@ -29,10 +29,10 @@
     @endif
 
     <div class="mt-2 flex items-center gap-2 border-t border-line pt-3 text-[12px] text-neutral-600">
-      <span>{{ $post->author?->name ?? 'Unknown' }}</span>
+      <span>{{ $post->author?->name ?? __('Unknown') }}</span>
       <a href="{{ route('blog.show', $post->slug) }}"
          class="ml-auto font-heading text-[12px] font-bold text-accent no-underline hover:text-accent-700">
-        Read →
+        {{ __('Read') }} →
       </a>
     </div>
   </div>

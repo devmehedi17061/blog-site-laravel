@@ -25,7 +25,7 @@
 
   <script type="application/ld+json">
     {!! json_encode(array_filter([
-      '@context' => 'https://schema.org',
+      '@@context' => 'https://schema.org', {{-- @@ keeps Blade from reading @context as its directive --}}
       '@type' => 'WebPage',
       'name' => $page->meta_title ?: $page->title,
       'description' => $page->meta_description ?: $page->excerpt,
@@ -50,7 +50,7 @@
     @forelse ($page->sections as $section)
       @include('frontend.partials.section', ['section' => $section])
     @empty
-      <p class="page-notice text-[15px] text-neutral-600">This page has no sections yet.</p>
+      <p class="page-notice text-[15px] text-neutral-600">{{ __('This page has no sections yet.') }}</p>
     @endforelse
   </article>
 @endsection

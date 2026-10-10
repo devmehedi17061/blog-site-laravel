@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\CsvExport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Learner accounts at a glance: what they are on and how far they got.
@@ -66,5 +68,31 @@ class StudentController extends Controller
             ],
             'can_manage' => $request->user()->hasPermission('users.update'),
         ]);
+    }
+
+    /** Every student this account may see, as a CSV file. */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Enrollment::class);
+        $own = $request->user()->role?->scope === 'Own content';
+
+        $rows = User::query()
+            ->whereHas('role', fn (Builder $q) => $q->where('slug', Role::STUDENT))
+            ->when($own, fn (Builder $q) => $q->whereHas('enrollments', fn (Builder $e) => $e->whereHas('course', fn (Builder $c) => $c->where('user_id', $request->user()->id))))
+            ->withCount([
+                'enrollments as active_count' => fn (Builder $q) => $q->where('status', 'Active'),
+                'enrollments as completed_count' => fn (Builder $q) => $q->whereNotNull('completed_at'),
+                'enrollments as pending_count' => fn (Builder $q) => $q->where('status', 'Pending'),
+            ])
+            ->orderBy('name')
+            ->lazy(200)
+            ->map(fn (User $u) => [
+                $u->name, $u->email, $u->phone, $u->status, $u->active_count, $u->completed_count, $u->pending_count,
+                $u->created_at?->format('Y-m-d'), $u->last_seen_at?->format('Y-m-d H:i'),
+            ]);
+
+        return CsvExport::download('students', [
+            'Name', 'Email', 'Phone', 'Status', 'Courses (active)', 'Completed', 'Awaiting payment', 'Joined', 'Last seen',
+        ], $rows);
     }
 }

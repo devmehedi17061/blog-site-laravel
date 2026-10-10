@@ -57,6 +57,14 @@ class StudentDashboardController extends Controller
                 'streak' => $this->streak($completions->pluck('created_at')),
             ],
             'week' => $this->week($completions->pluck('created_at')),
+            // First steps, ticked off as they happen; the card goes once all are done.
+            'checklist' => [
+                ['done' => true, 'label' => 'Create your account', 'url' => null],
+                ['done' => filled($user->phone), 'label' => 'Add your mobile number', 'hint' => 'Filled in for you at the checkout', 'url' => route('student.account')],
+                ['done' => $enrollments->isNotEmpty(), 'label' => 'Join your first course', 'hint' => 'Free courses open with one click', 'url' => route('courses.index')],
+                ['done' => $completions->isNotEmpty(), 'label' => 'Finish your first lesson', 'hint' => 'Videos tick themselves off when watched', 'url' => $continue ? route('learn.show', $continue->course->slug) : route('courses.index')],
+                ['done' => $active->whereNotNull('completed_at')->isNotEmpty(), 'label' => 'Earn a certificate', 'hint' => 'Finish every lesson of a course', 'url' => route('student.courses')],
+            ],
             'pendingPayments' => Payment::where('user_id', $user->id)->where('status', 'Pending')->with('course:id,title,slug')->latest()->get(),
             'rejectedPayments' => $this->openRejections($user),
             'notifications' => $user->notifications()->latest()->limit(4)->get(),
@@ -164,7 +172,7 @@ class StudentDashboardController extends Controller
     {
         $request->user()->unreadNotifications->markAsRead();
 
-        return back()->with('status', 'All notifications marked as read.');
+        return back()->with('status', __('All notifications marked as read.'));
     }
 
     // ── account ────────────────────────────────────────────────────────────
@@ -185,8 +193,8 @@ class StudentDashboardController extends Controller
             'current_password' => ['nullable', 'required_with:password', 'current_password'],
             'password' => ['nullable', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
         ], [
-            'current_password.current_password' => 'That is not your current password.',
-            'current_password.required_with' => 'Enter your current password to set a new one.',
+            'current_password.current_password' => __('That is not your current password.'),
+            'current_password.required_with' => __('Enter your current password to set a new one.'),
         ]);
 
         $user->fill(['name' => $data['name'], 'email' => strtolower($data['email']), 'phone' => $data['phone'] ?? null]);
@@ -197,7 +205,7 @@ class StudentDashboardController extends Controller
 
         $user->save();
 
-        return back()->with('status', 'Your account is saved.');
+        return back()->with('status', __('Your account is saved.'));
     }
 
     // ── helpers ────────────────────────────────────────────────────────────
@@ -246,8 +254,8 @@ class StudentDashboardController extends Controller
         $counts = $times->countBy(fn ($t) => Carbon::parse($t)->toDateString());
 
         return collect(range(6, 0))->map(fn ($ago) => [
-            'label' => today()->subDays($ago)->format('D'),
-            'date' => today()->subDays($ago)->format('d M'),
+            'label' => today()->subDays($ago)->translatedFormat('D'),
+            'date' => today()->subDays($ago)->translatedFormat('d M'),
             'count' => (int) ($counts[today()->subDays($ago)->toDateString()] ?? 0),
             'today' => $ago === 0,
         ])->all();

@@ -1,6 +1,6 @@
 import { api } from '../api.js'
 import { extend } from '../lib/extend.js'
-import { resourceTable } from '../lib/resourceTable.js'
+import { resourceTable } from '../lib/resource-table.js'
 
 /**
  * Readable and still long: no 0/O or 1/l/I to misread off a screen. Always

@@ -26,6 +26,7 @@ export default function payments() {
     busy: null,
     rejecting: null,
     preview: null,
+    selected: [],
     reasons: REASONS,
 
     async init() {
@@ -151,6 +152,58 @@ export default function payments() {
           this.rejecting.saving = false
         }
       }
+    },
+
+    // ── several at once ────────────────────────────────────────────────
+    get pendingRows() {
+      return this.rows.filter((r) => r.status === 'Pending' && r.can.review)
+    },
+
+    toggleSelect(id) {
+      const i = this.selected.indexOf(id)
+      i >= 0 ? this.selected.splice(i, 1) : this.selected.push(id)
+    },
+
+    get allSelected() {
+      return this.pendingRows.length > 0 && this.pendingRows.every((r) => this.selected.includes(r.id))
+    },
+
+    toggleAll() {
+      this.selected = this.allSelected ? [] : this.pendingRows.map((r) => r.id)
+    },
+
+    async verifySelected() {
+      const picked = this.rows.filter((r) => this.selected.includes(r.id))
+      const flagged = picked.filter((r) => r.duplicates.length || r.short)
+      const ok = await this.$store.dialog.confirm({
+        title: `Verify ${picked.length} payment${picked.length === 1 ? '' : 's'}`,
+        message: flagged.length
+          ? `${flagged.length} of them ${flagged.length === 1 ? 'has' : 'have'} a warning (short amount or a reused transaction ID): ${flagged.map((r) => r.invoice).join(', ')}.
+Verify them all anyway?`
+          : 'Each course opens and each student is notified.',
+        confirmLabel: 'Verify all',
+        danger: flagged.length > 0,
+      })
+      if (!ok) return
+
+      try {
+        const result = await api.post('/payments/bulk-verify', { ids: this.selected })
+        this.selected = []
+        this.$store.ui.notify(result.message)
+        await this.load()
+        this.refreshBadge()
+      } catch (err) {
+        this.$store.ui.notify(err.message, 'warn')
+      }
+    },
+
+    /** The list as filtered now, as a spreadsheet. */
+    exportCsv() {
+      const query = { ...this.query }
+      delete query.page
+      delete query.per_page
+      if (query.status === 'All') delete query.status
+      window.location.href = `/admin/api/payments/export?${new URLSearchParams(query)}`
     },
 
     copy(text) {

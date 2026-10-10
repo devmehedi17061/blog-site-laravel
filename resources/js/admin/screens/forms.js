@@ -1,6 +1,6 @@
 import { api } from '../api.js'
 import { extend } from '../lib/extend.js'
-import { resourceTable } from '../lib/resourceTable.js'
+import { resourceTable } from '../lib/resource-table.js'
 
 export default function forms() {
   const table = resourceTable({

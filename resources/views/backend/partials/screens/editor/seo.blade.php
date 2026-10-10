@@ -1,4 +1,4 @@
-{{-- The SEO tab, shared by the post and page editors (see lib/seoPanel.js). --}}
+{{-- The SEO tab, shared by the post and page editors (see lib/seo-panel.js). --}}
 <div class="flex flex-col gap-6">
 
   <section class="panel">

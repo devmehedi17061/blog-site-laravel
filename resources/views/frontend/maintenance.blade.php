@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
-  <title>{{ $site->name() }} — back soon</title>
+  <title>{{ $site->name() }} — {{ __('back soon') }}</title>
   @if ($site->get('favicon'))
     <link rel="icon" href="{{ $site->get('favicon') }}">
   @endif
@@ -29,10 +29,10 @@
     @else
       <div class="mark" aria-hidden="true">{{ $site->initials() }}</div>
     @endif
-    <h1>We'll be back soon</h1>
+    <h1>{{ __('We\'ll be back soon') }}</h1>
     <p>{{ $site->get('maintenance_message') }}</p>
     @if ($site->get('contact_email'))
-      <p style="margin-top:18px">Need us now? <a href="mailto:{{ $site->get('contact_email') }}">{{ $site->get('contact_email') }}</a></p>
+      <p style="margin-top:18px">{{ __('Need us now?') }} <a href="mailto:{{ $site->get('contact_email') }}">{{ $site->get('contact_email') }}</a></p>
     @endif
   </main>
 </body>

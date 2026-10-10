@@ -1,9 +1,9 @@
 import { api } from '../api.js'
 import { copyText } from '../lib/clipboard.js'
 import { FIELD_TYPES, groupTokens, normaliseKey, tokenFor } from '../lib/sections/template.js'
-import { moveIn, newField, uniqueKey } from '../lib/sections/fieldTree.js'
+import { moveIn, newField, uniqueKey } from '../lib/sections/field-tree.js'
 import { previewDoc } from '../lib/sections/preview.js'
-import { insertAtCursor } from '../lib/codeEditor.js'
+import { insertAtCursor } from '../lib/code-editor.js'
 
 const STARTER_HTML = [
   '<div class="block">',

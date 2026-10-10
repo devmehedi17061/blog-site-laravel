@@ -31,6 +31,7 @@ class StudentPanelComposer
                 'certificates' => Lms::setting('certificates')
                     ? Enrollment::where('user_id', $user->id)->where('status', 'Active')->whereNotNull('completed_at')->count()
                     : 0,
+                'wishlist' => $user->wishlist()->count(),
                 'notifications' => $user->unreadNotifications()->count(),
             ],
         ];

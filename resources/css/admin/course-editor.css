@@ -1,0 +1,9 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Admin → Courses → curriculum: dragging sections and lessons.
+   ══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  /* the grip for dragging curriculum rows */
+  .drag-handle { flex: none; padding: 2px 3px; font-size: 12px; letter-spacing: -2px; color: var(--color-neutral-400); cursor: grab; user-select: none; }
+  .drag-handle:hover { color: var(--color-ink); }
+  [draggable="true"]:active { cursor: grabbing; }
+}

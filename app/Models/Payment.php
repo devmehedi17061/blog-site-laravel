@@ -16,7 +16,7 @@ class Payment extends Model
     public const STATUSES = ['Pending', 'Verified', 'Rejected'];
 
     protected $fillable = [
-        'user_id', 'course_id', 'enrollment_id', 'amount', 'expected_amount', 'method',
+        'user_id', 'course_id', 'enrollment_id', 'coupon_id', 'coupon_code', 'discount', 'amount', 'expected_amount', 'method',
         'sender_number', 'transaction_id', 'proof_path', 'note', 'status',
         'reviewed_by', 'reviewed_at', 'rejection_reason',
     ];
@@ -26,6 +26,7 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'expected_amount' => 'decimal:2',
+            'discount' => 'decimal:2',
             'reviewed_at' => 'datetime',
         ];
     }
@@ -38,6 +39,11 @@ class Payment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class)->withTrashed();
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function enrollment(): BelongsTo

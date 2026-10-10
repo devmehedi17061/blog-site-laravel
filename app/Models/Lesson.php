@@ -4,20 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lesson extends Model
 {
-    public const TYPES = ['video', 'article'];
+    public const TYPES = ['video', 'article', 'quiz'];
 
     protected $fillable = [
         'course_id', 'course_section_id', 'title', 'type', 'video_url', 'video_path', 'video_name', 'video_size',
         'body', 'media_id', 'duration_minutes', 'is_preview', 'position',
+        'pass_mark', 'max_attempts', 'shuffle_questions',
     ];
 
     protected function casts(): array
     {
         return [
             'is_preview' => 'boolean',
+            'shuffle_questions' => 'boolean',
+            'pass_mark' => 'integer',
+            'max_attempts' => 'integer',
             'duration_minutes' => 'integer',
         ];
     }
@@ -36,6 +41,22 @@ class Lesson extends Model
     public function attachment(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'media_id')->withTrashed();
+    }
+
+    /** A quiz lesson's questions, in order. */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(QuizQuestion::class)->orderBy('position')->orderBy('id');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function isQuiz(): bool
+    {
+        return $this->type === 'quiz';
     }
 
     /** An uploaded video, streamed privately, rather than a link. */
@@ -68,6 +89,6 @@ class Lesson extends Model
     {
         $m = (int) $this->duration_minutes;
 
-        return $m <= 0 ? '' : ($m < 60 ? "{$m} min" : intdiv($m, 60).'h '.str_pad((string) ($m % 60), 2, '0', STR_PAD_LEFT).'m');
+        return $m <= 0 ? '' : ($m < 60 ? __(':m min', ['m' => $m]) : __(':hh :mm', ['h' => intdiv($m, 60), 'm' => str_pad((string) ($m % 60), 2, '0', STR_PAD_LEFT)]));
     }
 }

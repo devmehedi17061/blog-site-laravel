@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Discussion;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonCompletion;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Support\LessonVideos;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,7 +32,7 @@ class LearnController extends Controller
 
         if ($lessons->isEmpty()) {
             return redirect()->route('courses.show', $course->slug)
-                ->with('status', 'This course has no lessons yet.');
+                ->with('status', __('This course has no lessons yet.'));
         }
 
         $user = $request->user();
@@ -49,13 +52,13 @@ class LearnController extends Controller
         if (! $hasAccess && ! $lesson->is_preview) {
             if (! $user) {
                 return redirect()->guest(route('student.login'))
-                    ->with('status', 'Sign in to start '.$course->title.'.');
+                    ->with('status', __('Sign in to start :course.', ['course' => $course->title]));
             }
 
             return redirect()->route('courses.show', $course->slug)
                 ->with('status', $enrollment?->status === 'Pending'
-                    ? 'Your payment is being checked — the course opens as soon as it is confirmed.'
-                    : 'Enroll to open this lesson.');
+                    ? __('Your payment is being checked — the course opens as soon as it is confirmed.')
+                    : __('Enroll to open this lesson.'));
         }
 
         // Lessons in order: one still waiting on an earlier lesson sends the
@@ -65,7 +68,7 @@ class LearnController extends Controller
             $due = $lessons->first(fn (Lesson $l) => ! in_array($l->id, $done, true) && ! in_array($l->id, $locked, true));
 
             return redirect()->route('learn.show', [$course->slug, $due?->id ?? $lessons->first()->id])
-                ->with('status', 'Lessons open in order — complete “'.($due?->title ?? 'this lesson').'” to unlock the next one.');
+                ->with('status', __('Lessons open in order — complete “:lesson” to unlock the next one.', ['lesson' => $due?->title ?? __('this lesson')]));
         }
 
         // Where they are, for "continue where you left off" in their panel.
@@ -75,8 +78,45 @@ class LearnController extends Controller
 
         $index = $lessons->search(fn (Lesson $l) => $l->id === $lesson->id);
 
+        // A quiz: its questions (shuffled per try, if set), the tries so
+        // far, and the one just submitted.
+        $quiz = null;
+        if ($lesson->isQuiz()) {
+            $attempts = $user ? QuizAttempt::where('user_id', $user->id)->where('lesson_id', $lesson->id)->latest()->get() : collect();
+            $questions = $lesson->questions()->get();
+            if ($lesson->shuffle_questions) {
+                $questions = $questions->shuffle(crc32(($user?->id ?? 0).'-'.$attempts->count()));
+            }
+            $justTaken = session('quiz_attempt') ? $attempts->firstWhere('id', session('quiz_attempt')) : null;
+            $passed = $attempts->contains('passed', true);
+            $left = $lesson->max_attempts > 0 ? max(0, $lesson->max_attempts - $attempts->count()) : null;
+
+            $quiz = [
+                'questions' => $questions,
+                'attempts' => $attempts,
+                'result' => $justTaken,
+                'best' => $attempts->max('score'),
+                'passed' => $passed,
+                'left' => $left,
+                // Right answers are shown once they can no longer help guess:
+                // after a pass, or when no tries are left.
+                'reveal' => $passed || $left === 0,
+            ];
+        }
+
+        // Questions under this lesson, newest first, with their replies.
+        $discussions = Discussion::questions()
+            ->where('lesson_id', $lesson->id)
+            ->with(['author:id,name,role_id', 'author.role:id,slug', 'replies.author:id,name,role_id', 'replies.author.role:id,slug'])
+            ->latest()
+            ->limit(50)
+            ->get();
+
         return view('frontend.learn.show', [
             'locked' => $locked,
+            'quiz' => $quiz,
+            'discussions' => $discussions,
+            'canDiscuss' => $hasAccess && $user !== null,
             'course' => $course,
             'lesson' => $lesson,
             'enrollment' => $enrollment,
@@ -113,7 +153,7 @@ class LearnController extends Controller
         $enrollment = $user ? Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->first() : null;
         abort_unless($lesson->is_preview || $this->hasAccess($user, $course, $enrollment), 403);
         abort_if(in_array($lesson->id, $this->lockedFor($user, $course, $this->doneBy($user, $course)), true), 403,
-            'Complete the earlier lessons first.');
+            __('Complete the earlier lessons first.'));
 
         return response()->file(LessonVideos::disk()->path($lesson->video_path), [
             'Content-Type' => LessonVideos::mime($lesson->video_path),
@@ -125,19 +165,22 @@ class LearnController extends Controller
     }
 
     /** "Mark as complete" — and, pressed again, "mark as not complete". */
-    public function complete(Request $request, string $slug, int $lessonId): RedirectResponse
+    public function complete(Request $request, string $slug, int $lessonId): RedirectResponse|JsonResponse
     {
         $course = Course::where('slug', $slug)->firstOrFail();
         $lesson = Lesson::where('course_id', $course->id)->findOrFail($lessonId);
         $user = $request->user();
         $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->first();
 
-        abort_unless($enrollment?->isActive(), 403, 'Enroll in the course to track your progress.');
+        abort_unless($enrollment?->isActive(), 403, __('Enroll in the course to track your progress.'));
+
+        // A quiz is complete only once it is passed (QuizController).
+        abort_if($lesson->isQuiz(), 403, __('Pass the quiz to complete this lesson.'));
 
         // A lesson still locked cannot be ticked off from outside the page.
         if (! $request->boolean('undo') && in_array($lesson->id, $this->lockedFor($user, $course, $this->doneBy($user, $course)), true)) {
             return redirect()->route('learn.show', $course->slug)
-                ->with('status', 'Lessons open in order — finish the earlier ones first.');
+                ->with('status', __('Lessons open in order — finish the earlier ones first.'));
         }
 
         $existing = LessonCompletion::where('user_id', $user->id)->where('lesson_id', $lesson->id)->first();
@@ -151,9 +194,26 @@ class LearnController extends Controller
         $wasComplete = $enrollment->completed_at !== null;
         $enrollment->syncCompletion();
 
+        // The player marks a watched video done in the background, without
+        // leaving the page: it gets the new progress back instead.
+        if ($request->expectsJson()) {
+            $total = $course->lessons()->count();
+            $done = LessonCompletion::where('user_id', $user->id)->where('course_id', $course->id)->count();
+
+            return response()->json([
+                'done' => ! $request->boolean('undo'),
+                'progress' => $total ? (int) min(100, round($done / $total * 100)) : 0,
+                'done_count' => $done,
+                'total' => $total,
+                'course_complete' => $enrollment->completed_at !== null,
+                'just_finished' => ! $wasComplete && $enrollment->completed_at !== null,
+                'certificate_url' => $enrollment->completed_at ? route('student.certificate', $enrollment) : null,
+            ]);
+        }
+
         if (! $wasComplete && $enrollment->completed_at) {
             return redirect()->route('learn.show', [$course->slug, $lesson->id])
-                ->with('status', 'Course complete — congratulations! Your certificate is ready.')
+                ->with('status', __('Course complete — congratulations! Your certificate is ready.'))
                 ->with('celebrate', true);
         }
 

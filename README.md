@@ -61,6 +61,21 @@ once is enough.
 | `/admin` | Admin panel (redirects to login) |
 | `/admin/login` | Sign in |
 
+### Built files
+
+`npm run build` writes plain, readable names to `public/build/`:
+
+```
+public/build/css/app.css    one stylesheet for the site and the admin
+public/build/js/site.js     the public site
+public/build/js/admin.js    the admin panel
+```
+
+There is no hash in the file names. Laravel adds one to each URL instead
+(`/build/css/app.css?v=626157fa17`, see `AppServiceProvider`), taken from
+the file's content, so browsers fetch the new file after every build.
+File names in `resources/` are kebab-case throughout.
+
 ## Sign in
 
 With `cms:install --demo` (local only; a clean install uses the admin you chose):
@@ -93,32 +108,42 @@ lms-site-laravel/
 │   └── View/Composers/MenuComposer.php public header navigation
 ├── resources/
 │   ├── css/
-│   │   ├── app.css                 entry — imports the twelve below
-│   │   ├── tokens.css              palette, three border tiers, elevation
-│   │   ├── base.css                type scale, focus rings, scrollbars
-│   │   ├── components.css          .panel .data-table .chip .btn .input .tag …
-│   │   ├── content.css             shared by the editor AND the public post
-│   │   ├── editor.css              toolbar, writing surface, SEO panel
-│   │   ├── media.css               folders, grid, uploads, details panel
-│   │   ├── builder.css             section library + page sections
-│   │   ├── forms.css               forms on the PUBLIC site (.cms-*)
-│   │   ├── form-builder.css        the form builder's own bits
-│   │   ├── inbox.css               the form inbox's three columns
-│   │   ├── menu.css                the PUBLIC navigation, three levels
-│   │   └── menu-builder.css        menu control's three columns
+│   │   ├── app.css                 entry — imports everything below, in order
+│   │   ├── core/                   shared by the site AND the admin
+│   │   │   ├── tokens.css          palette, three border tiers, elevation
+│   │   │   ├── base.css            type scale, focus rings, scrollbars
+│   │   │   ├── components.css      .panel .data-table .chip .btn .input .tag …
+│   │   │   └── content.css         rich text: the editor AND the public post
+│   │   ├── site/                   the public site
+│   │   │   ├── layout.css          site width and the :root design defaults
+│   │   │   ├── navigation.css      the public menu, three levels
+│   │   │   ├── header-footer.css   site tokens a header or footer can use
+│   │   │   ├── language-switch.css the বাংলা / EN switch
+│   │   │   ├── slider.css          the slider engine's structure
+│   │   │   ├── forms.css           forms built with the form builder (.cms-*)
+│   │   │   ├── courses.css         course cards, price, stars, curriculum
+│   │   │   ├── lesson-player.css   the player, quizzes, lesson Q&A
+│   │   │   └── student-panel.css   student panel, receipts, the certificate
+│   │   └── admin/                  one file per admin screen
+│   │       ├── dashboard.css  post-editor.css  media-library.css
+│   │       ├── section-builder.css  header-footer-builder.css
+│   │       ├── form-builder.css  form-inbox.css  menu-builder.css
+│   │       ├── course-editor.css  reports.css  roles.css
+│   │       └── security.css  revisions.css  settings.css
 │   ├── js/
-│   │   ├── admin.js                    Alpine bootstrap
+│   │   ├── site.js                     the public site (slider, menu toggle)
+│   │   ├── admin.js                    Alpine bootstrap for the panel
 │   │   └── admin/
 │   │       ├── api.js                  fetch wrapper, CSRF, upload, ApiError
-│   │       ├── lib/                    resourceTable, mediaBrowser, richEditor,
-│   │       │                            postImage, seo, upload, extend, debounce
+│   │       ├── lib/                    resource-table, media-browser, rich-editor,
+│   │       │                            post-image, chunk-upload, code-editor,
+│   │       │                            seo, seo-panel, tree-list, upload, debounce
 │   │       ├── lib/sections/           the section renderer's client twin
 │   │       ├── lib/forms/              field types for the form builder
 │   │       ├── stores/                 auth (can()), ui (routing, toasts), picker
-│   │       └── screens/                dashboard, posts, post-editor, media,
-│   │                                    pages, page-editor, section-library,
-│   │                                    forms, form-builder, inbox, menu,
-│   │                                    categories
+│   │       └── screens/                one file per admin screen, named like
+│   │                                    its route: courses, course-editor,
+│   │                                    payments, coupons, reports, posts …
 │   └── views/
 │       ├── backend/                    admin layout, login, panel
 │       │   └── partials/
@@ -233,7 +258,7 @@ library, a length in minutes, and a **Free preview** switch that opens it to eve
 **Private uploaded videos.** YouTube *Private* videos cannot be embedded anywhere, so a
 video lesson can instead be an uploaded file:
 
-- The editor sends it in 5 MB chunks (`lib/chunkUpload.js` →
+- The editor sends it in 5 MB chunks (`lib/chunk-upload.js` →
   `POST /admin/api/courses/{id}/lesson-video`), so PHP's `upload_max_filesize` never matters;
   the ceiling is **Settings → LMS → Largest video upload** (2 GB by default).
 - `App\Support\LessonVideos` joins the chunks, checks the bytes really are a video, and
@@ -264,6 +289,71 @@ curriculum changes) and `/certificate/{enrollment}` opens: a printable A4 landsc
 "Save as PDF" in the print dialog makes the file. Only the student and staff who can see the
 enrollment may open it.
 
+### Coupons
+
+`coupons` (+ `coupon_course`, empty = every course) and `coupon_redemptions`, one row per
+use. `Coupon::problemFor($user, $course)` is the single rule for whether a code applies:
+active, inside its dates, for this course, above `min_amount`, under `max_uses` and
+`max_uses_per_user`. A use waiting on the same student's own pending payment for the same
+course does not count, because resending replaces it.
+
+- At checkout the code is kept in the session per course (`coupons.{id}`) and checked again
+  on every request; `?coupon=CODE` on a course page or the catalogue applies it from a link.
+- `Lms::submitPayment()` stores `coupon_id`, `discount` and the discounted `expected_amount`
+  on the payment and records the redemption; `rejectPayment()` deletes it (the use comes back).
+- A 100% coupon skips payment: `Lms::enrollWithFreeCoupon()`.
+- Permissions `coupons.*` (Super Admin, Editor; not Instructor).
+
+### Quizzes
+
+A lesson of type `quiz` has `quiz_questions` (`single`, `multiple`, `true_false`; options are
+`[{text, correct}]`), plus `pass_mark`, `max_attempts` (0 = unlimited) and `shuffle_questions`.
+They are saved with the curriculum tree. `QuizController` grades on the server and stores a
+`quiz_attempts` row; a pass is the only way a quiz lesson becomes complete (the complete
+endpoint refuses quizzes), so with "Lessons in order" the next lesson waits for a pass.
+Right answers are only revealed after a pass or when no tries are left. Staff who can edit
+the course can try a quiz without it being recorded.
+
+### Q&A, announcements, wishlist, certificate check
+
+- `discussions`: a question has no `parent_id`; replies point at it. A reply from staff who
+  can edit the course marks it answered and notifies the asker. Admin: LMS → Q&A.
+- `course_announcements`: sent from the course editor's Announcements tab to every active
+  student as a database notification (no mass email), and shown on the course page.
+- `wishlists`: the ♥ on a course page; Student panel → Wishlist.
+- `/certificates/verify?serial=…` is public. `Enrollment::certificateSerial()` ends in an
+  HMAC fragment (app key), so serials cannot be guessed from an id and a date.
+
+### Learning flow and admin tools
+
+- The player marks a video lesson complete in the background at 90% watched (YouTube
+  IFrame API or the `<video>` element), remembers the position in `localStorage`, and
+  offers the next lesson in an "Up next" overlay. On a phone a bar at the bottom holds
+  previous / complete / next. Keys: `N` next, `P` previous, `M` mark complete, `F` focus.
+- The student dashboard has a getting-started checklist, a week chart and a streak.
+- Payments: tick several and verify them at once (`POST /payments/bulk-verify`), or
+  download the filtered list as CSV (`GET /payments/export`). Students export the same way.
+- Courses and lessons can be duplicated; curriculum rows are dragged into order.
+- LMS → Reports: revenue and enrollments by month, per-course completion and rating,
+  payment methods, coupon use and the hardest quiz questions (`ReportController`).
+
+### Languages (English / বাংলা)
+
+The student side speaks English and Bangla; the admin panel stays English.
+
+- `SetSiteLanguage` picks the language: the visitor's choice this session
+  (`/language/bn`, `/language/en`), else `users.locale`, else Settings → Site → Language.
+- Every student-facing string goes through `__()`; the Bangla lines are in `lang/bn.json`
+  (plus `lang/bn/validation.php`, `auth.php`, `passwords.php`, `pagination.php`).
+  `LanguageTest` fails if a key in the code has no Bangla line.
+- Text typed into the Section library, Header & footer and form fields also goes through
+  `__()`, so a starter's "Quick links" or "Home" is translated when `bn.json` has it;
+  anything else shows as written.
+- `StudentNotice` stores English templates plus `params` and is worded when read — in the
+  panel in the current language, by email in the student's own (`User::preferredLocale()`).
+- To add a language: copy `lang/bn.json` to `lang/<code>.json`, translate it, and add the
+  code to `SetSiteLanguage::OFFERED`, `SiteSettings::LANGUAGES` and the `/language/{locale}` route.
+
 ### Admin JSON endpoints (LMS)
 
 | Method | Route | Purpose |
@@ -285,9 +375,11 @@ enrollment may open it.
 php artisan test
 ```
 
-`tests/Feature/LmsTest.php` covers the rules above: the admin door, drafts, previews,
+`tests/Feature/LmsTest.php`, `PaymentTest.php`, `LessonVideoTest.php`, `CouponTest.php` and
+`QuizAndCommunityTest.php`, `AdminToolsTest.php` and `LanguageTest.php` (80 tests) cover the rules above: the admin door, drafts, previews,
 free and paid enrollment, auto-approve, completion and certificates, reviews, instructor
-scope, the curriculum tree, enrollments, settings and the trash.
+scope, the curriculum tree, enrollments, settings, the trash, reports and exports, and the
+Bangla interface.
 
 ## Admin JSON endpoints
 
@@ -538,7 +630,7 @@ to produce output byte-identical to `inlineStyle()` / `contentStyle()`.
 
 `#/categories` manages the blog's taxonomy. Up to **three levels**, edited the
 same way Menu control is — a flat list where each row carries its own depth,
-dragged to reorder, `→` to nest. `lib/treeList.js` is shared by both, and the
+dragged to reorder, `→` to nest. `lib/tree-list.js` is shared by both, and the
 depth rules are enforced in the browser *and* again on the server.
 
 **One category per post.** The hierarchy is the grouping; a post picks one
@@ -823,7 +915,7 @@ URLs, Open Graph tags and structured data.
 
 **Still to build** — User management, Roles & permissions, Security, Settings. Their tables, models and permissions already exist; each needs a controller and
 a screen. Posts is the template to copy — most of the work is reused from
-`resources/js/admin/lib/resourceTable.js`.
+`resources/js/admin/lib/resource-table.js`.
 
 ## Two things to know before extending it
 
@@ -842,7 +934,7 @@ that reads `this.revision` is not reliably tracked as a dependency inside an `x-
 though the underlying data was correct.
 
 **Keep the TipTap instance out of Alpine's reactive data.** In `screens/post-editor.js`
-and in `lib/sections/fieldEditor.js` it lives in a closure variable, not a property.
+and in `lib/sections/field-editor.js` it lives in a closure variable, not a property.
 Alpine proxies every property it returns, and ProseMirror compares editor state by
 identity — a proxied instance throws "Applying a mismatched transaction" on the first
 keystroke.

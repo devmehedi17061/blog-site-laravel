@@ -24,7 +24,7 @@ class CertificateController extends Controller
 
         if (! $enrollment->isActive() || ! $enrollment->completed_at) {
             return redirect()->route('student.dashboard')
-                ->with('status', 'The certificate is ready once every lesson is complete.');
+                ->with('status', __('The certificate is ready once every lesson is complete.'));
         }
 
         $enrollment->load(['student:id,name', 'course' => fn ($q) => $q->with('instructor:id,name')]);
@@ -33,8 +33,22 @@ class CertificateController extends Controller
             'enrollment' => $enrollment,
             'text' => (string) Lms::setting('certificate_text'),
             'signer' => (string) Lms::setting('certificate_signer') ?: $enrollment->course?->instructor?->name,
-            // Short and checkable: the enrollment id and the completion date.
-            'serial' => 'C-'.str_pad((string) $enrollment->id, 5, '0', STR_PAD_LEFT).'-'.$enrollment->completed_at->format('ymd'),
+            // Checkable by anyone at /certificates/verify.
+            'serial' => $enrollment->certificateSerial(),
+        ]);
+    }
+
+    /**
+     * Public: anyone with a certificate number — an employer, say — can
+     * check that it is genuine and see whose it is.
+     */
+    public function verify(Request $request): View
+    {
+        $serial = trim((string) $request->query('serial', ''));
+
+        return view('frontend.certificate-verify', [
+            'serial' => $serial,
+            'enrollment' => $serial !== '' ? Enrollment::fromCertificateSerial($serial) : null,
         ]);
     }
 }

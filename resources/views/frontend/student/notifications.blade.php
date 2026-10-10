@@ -1,12 +1,12 @@
 @extends('frontend.student.shell')
 
-@section('title', $site->title('Notifications'))
-@section('panel_title', 'Notifications')
+@section('title', $site->title(__('Notifications')))
+@section('panel_title', __('Notifications'))
 @section('panel_actions')
   @if (($panelCounts['notifications'] ?? 0) > 0)
     <form method="POST" action="{{ route('student.notifications.read') }}">
       @csrf
-      <button class="btn btn-secondary">Mark all as read</button>
+      <button class="btn btn-secondary">{{ __('Mark all as read') }}</button>
     </form>
   @endif
 @endsection
@@ -18,7 +18,7 @@
     @empty
       <div class="sp-empty">
         <div class="mb-2 text-[36px]">🔔</div>
-        Nothing yet. Payment checks and course news show up here.
+        {{ __('Nothing yet. Payment checks and course news show up here.') }}
       </div>
     @endforelse
   </div>

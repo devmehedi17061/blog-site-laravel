@@ -2,6 +2,7 @@
 @php
   $data = $note->data;
   $tone = $data['tone'] ?? 'info';
+  $params = $data['params'] ?? [];
 @endphp
 <a href="{{ route('student.notifications.open', $note->id) }}" class="sp-note {{ $note->read_at ? '' : 'is-unread' }}">
   <span class="sp-note-icon is-{{ $tone }}" aria-hidden="true">
@@ -14,13 +15,13 @@
     @endif
   </span>
   <span class="min-w-0 flex-1">
-    <span class="block text-[14px] {{ $note->read_at ? 'font-medium' : 'font-bold' }}">{{ $data['title'] ?? 'Notification' }}</span>
+    <span class="block text-[14px] {{ $note->read_at ? 'font-medium' : 'font-bold' }}">{{ __($data['title'] ?? 'Notification', $params) }}</span>
     @unless ($compact ?? false)
-      <span class="mt-0.5 block text-[13px] leading-relaxed text-neutral-700">{{ $data['body'] ?? '' }}</span>
+      <span class="mt-0.5 block text-[13px] leading-relaxed text-neutral-700">{{ __($data['body'] ?? '', $params) }}</span>
     @endunless
     <span class="mt-1 block text-[11px] text-neutral-500">{{ $note->created_at->diffForHumans() }}</span>
   </span>
   @if (! empty($data['action']) && ! ($compact ?? false))
-    <span class="btn btn-secondary btn-sm self-center">{{ $data['action'] }}</span>
+    <span class="btn btn-secondary btn-sm self-center">{{ __($data['action'], $params) }}</span>
   @endif
 </a>

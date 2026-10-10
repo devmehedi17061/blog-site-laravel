@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Concerns;
 
 use App\Models\Page;
+use App\Support\CustomCode;
 use App\Support\Seo;
 use Closure;
 use Illuminate\Validation\Rule;
@@ -19,7 +20,7 @@ trait ValidatesPageFields
             'media_id' => ['nullable', 'integer', 'exists:media,id'],
             'published_at' => ['nullable', 'date'],
             ...Seo::rules(),
-            ...\App\Support\CustomCode::rules(),
+            ...CustomCode::rules(),
         ];
     }
 

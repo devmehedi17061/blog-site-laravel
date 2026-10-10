@@ -2,7 +2,7 @@
 
 @section('title', $category->meta_title ?: $site->title($category->name))
 @section('description', $category->meta_description ?: $category->description
-    ?: 'Posts filed under '.$category->name.'.')
+    ?: __('Posts filed under :category.', ['category' => $category->name]))
 @section('og_image', (string) ($category->image?->url))
 
 @section('content')
@@ -10,8 +10,8 @@
   <div class="mb-8">
     {{-- The trail is the category's own ancestry, so a sub-category says
          where it sits rather than pretending to be top level. --}}
-    <nav class="mb-4 text-[13px] text-neutral-600" aria-label="Breadcrumb">
-      <a href="{{ route('blog.index') }}" class="text-accent no-underline">Blog</a>
+    <nav class="mb-4 text-[13px] text-neutral-600" aria-label="{{ __('Breadcrumb') }}">
+      <a href="{{ route('blog.index') }}" class="text-accent no-underline">{{ __('Blog') }}</a>
 
       @foreach ($ancestors as $ancestor)
         <span class="mx-2">/</span>
@@ -29,7 +29,7 @@
            class="mb-5 max-h-[260px] w-full border border-line-strong object-cover">
     @endif
 
-    <div class="kicker mb-1">Category</div>
+    <div class="kicker mb-1">{{ __('Category') }}</div>
     <h1 class="!mb-2">{{ $category->name }}</h1>
 
     @if ($category->description)
@@ -37,12 +37,11 @@
     @endif
 
     <p class="mt-2 text-[13px] text-neutral-600">
-      {{ $posts->total() }} {{ Str::plural('post', $posts->total()) }}
       @if ($children->isNotEmpty())
-        , including everything in its {{ $children->count() }}
-        {{ Str::plural('sub-category', $children->count()) }}
+        {{ trans_choice(':count post, including everything in its :sub sub-categories.|:count posts, including everything in its :sub sub-categories.', $posts->total(), ['count' => $posts->total(), 'sub' => $children->count()]) }}
+      @else
+        {{ trans_choice(':count post.|:count posts.', $posts->total(), ['count' => $posts->total()]) }}
       @endif
-      .
     </p>
 
     @if ($children->isNotEmpty())
@@ -59,8 +58,8 @@
 
   @if ($posts->isEmpty())
     <div class="panel max-w-[560px]">
-      <div class="panel-head"><span class="h-2.5 w-2.5 bg-accent"></span> Nothing here yet</div>
-      <p class="panel-body text-sm text-neutral-700">No published posts in {{ $category->name }} so far.</p>
+      <div class="panel-head"><span class="h-2.5 w-2.5 bg-accent"></span> {{ __('Nothing here yet') }}</div>
+      <p class="panel-body text-sm text-neutral-700">{{ __('No published posts in :category so far.', ['category' => $category->name]) }}</p>
     </div>
   @else
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

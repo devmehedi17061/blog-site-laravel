@@ -1,5 +1,6 @@
+import { api } from '../api.js'
 import { extend } from '../lib/extend.js'
-import { resourceTable } from '../lib/resourceTable.js'
+import { resourceTable } from '../lib/resource-table.js'
 
 /** The list of courses. Editing happens in the full-page course editor. */
 export default function courses() {
@@ -31,6 +32,17 @@ export default function courses() {
 
     openEdit(row) {
       this.$store.ui.go('courses', row.id)
+    },
+
+    /** A draft copy — curriculum, quizzes and videos included — opened for editing. */
+    async duplicate(row) {
+      try {
+        const result = await api.post(`/courses/${row.id}/duplicate`)
+        this.$store.ui.notify(result.message)
+        this.$store.ui.go('courses', result.id)
+      } catch (err) {
+        this.$store.ui.notify(err.message, 'warn')
+      }
     },
 
     tagFor(status) {

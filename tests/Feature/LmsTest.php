@@ -55,6 +55,19 @@ class LmsTest extends TestCase
         return $course;
     }
 
+    public function test_a_course_page_carries_valid_structured_data(): void
+    {
+        $course = $this->course(['title' => 'Structured']);
+
+        $html = $this->get(route('courses.show', $course->slug))->assertOk()->getContent();
+        preg_match('#<script type="application/ld\+json">\s*(.*?)\s*</script>#s', $html, $match);
+        $data = json_decode($match[1] ?? '', true);
+
+        // Blade reads a bare @context as its own directive; the key must survive.
+        $this->assertSame('https://schema.org', $data['@context'] ?? null);
+        $this->assertSame('Course', $data['@type']);
+    }
+
     // ── access ─────────────────────────────────────────────────────────────
 
     public function test_students_are_kept_out_of_the_admin_panel(): void
@@ -178,10 +191,14 @@ class LmsTest extends TestCase
         $this->assertNotNull($enrollment->fresh()->completed_at);
         $this->actingAs($student)->get(route('student.certificate', $enrollment))->assertOk()->assertSee($student->name);
 
-        // Undoing a lesson takes completion away again.
+        // Once earned, kept: un-ticking a lesson or adding one does not take it away.
         $lesson = $course->orderedLessons()->first();
         $this->actingAs($student)->post(route('learn.complete', [$course->slug, $lesson->id]), ['undo' => 1]);
-        $this->assertNull($enrollment->fresh()->completed_at);
+        $this->assertNotNull($enrollment->fresh()->completed_at);
+
+        Lesson::create(['course_id' => $course->id, 'course_section_id' => $lesson->course_section_id, 'title' => 'New', 'type' => 'article']);
+        $enrollment->fresh()->syncCompletion();
+        $this->assertNotNull($enrollment->fresh()->completed_at);
     }
 
     public function test_lessons_open_in_order(): void
@@ -223,6 +240,34 @@ class LmsTest extends TestCase
 
         app(SiteSettings::class)->save('lms', ['sequential' => false]);
         $this->actingAs($student)->get($url)->assertOk();
+    }
+
+    public function test_a_watched_video_is_marked_done_in_the_background(): void
+    {
+        $course = $this->course([], 2);
+        [$first, $second] = $course->orderedLessons()->all();
+        $student = $this->user('student');
+        Enrollment::create(['user_id' => $student->id, 'course_id' => $course->id, 'status' => 'Active']);
+
+        // The player knows where to report, and where to go next once done.
+        $this->actingAs($student)->get(route('learn.show', [$course->slug, $first->id]))
+            ->assertSee('data-track="'.route('learn.complete', [$course->slug, $first->id]).'"', false)
+            ->assertSee('data-next-after="'.route('learn.show', [$course->slug, $second->id]).'"', false);
+
+        $this->actingAs($student)->postJson(route('learn.complete', [$course->slug, $first->id]))
+            ->assertOk()
+            ->assertJson(['done' => true, 'progress' => 50, 'done_count' => 1, 'total' => 2, 'course_complete' => false]);
+
+        $this->actingAs($student)->postJson(route('learn.complete', [$course->slug, $second->id]))
+            ->assertJson(['progress' => 100, 'just_finished' => true]);
+    }
+
+    public function test_new_students_get_a_getting_started_checklist(): void
+    {
+        $student = $this->user('student');
+
+        $this->actingAs($student)->get(route('student.dashboard'))
+            ->assertSee('Getting started')->assertSee('1 of 5 done')->assertSee('Join your first course');
     }
 
     public function test_nobody_else_can_open_a_students_certificate(): void

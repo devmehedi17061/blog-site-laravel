@@ -1,6 +1,6 @@
 import { api } from '../../api.js'
 import { FIELD_TYPES, blankItem, blankValues, escapeHtml, renderSection } from './template.js'
-import { moveIn } from './fieldTree.js'
+import { moveIn } from './field-tree.js'
 import { BACKGROUND_IMAGE_FIELDS, BAND_STYLE_FIELDS, CONTENT_STYLE_FIELDS } from './style.js'
 import { previewDoc } from './preview.js'
 

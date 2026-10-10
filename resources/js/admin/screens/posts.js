@@ -1,5 +1,5 @@
 import { extend } from '../lib/extend.js'
-import { resourceTable } from '../lib/resourceTable.js'
+import { resourceTable } from '../lib/resource-table.js'
 
 /** Maps a status onto the tag class the design system defines for it. */
 function tagFor(status) {

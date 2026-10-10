@@ -1,6 +1,6 @@
 import { api } from '../api.js'
 import { extend } from '../lib/extend.js'
-import { mediaBrowser } from '../lib/mediaBrowser.js'
+import { mediaBrowser } from '../lib/media-browser.js'
 
 export default function media() {
   const browser = mediaBrowser({ perPage: 24 })

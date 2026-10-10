@@ -15,7 +15,7 @@ class RolePermissionSeeder extends Seeder
     private array $groups = [
         'Content' => ['pages', 'posts', 'categories', 'media', 'menu'],
         'Builders' => ['sections', 'forms', 'layout'],
-        'LMS' => ['courses', 'enrollments'],
+        'LMS' => ['courses', 'enrollments', 'coupons'],
         'Access' => ['users', 'roles', 'security'],
         'System' => ['settings'],
     ];
@@ -47,7 +47,7 @@ class RolePermissionSeeder extends Seeder
                 'description' => 'Full access to every module and setting.', 'grant' => 'all'],
             ['name' => 'Editor', 'slug' => 'editor', 'scope' => 'Content', 'is_locked' => false,
                 'description' => 'Manages all content and builders, no access control.',
-                'grant' => ['pages', 'posts', 'categories', 'media', 'menu', 'sections', 'forms', 'layout', 'courses', 'enrollments']],
+                'grant' => ['pages', 'posts', 'categories', 'media', 'menu', 'sections', 'forms', 'layout', 'courses', 'enrollments', 'coupons']],
             ['name' => 'Instructor', 'slug' => 'instructor', 'scope' => 'Own content', 'is_locked' => false,
                 'description' => 'Builds and edits their own courses and sees who is enrolled on them.',
                 'grant' => ['courses.view', 'courses.create', 'courses.update', 'enrollments.view',

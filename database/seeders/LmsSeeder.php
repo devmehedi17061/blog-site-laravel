@@ -4,14 +4,17 @@ namespace Database\Seeders;
 
 use App\Actions\Menu\SaveMenu;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Course;
 use App\Models\CourseReview;
 use App\Models\CourseSection;
+use App\Models\Discussion;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonCompletion;
 use App\Models\Page;
 use App\Models\Payment;
+use App\Models\QuizQuestion;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -176,6 +179,7 @@ class LmsSeeder extends Seeder
             'rating' => 4, 'comment' => 'Very practical. Would love a section on testing.',
         ]);
 
+        $this->extras($made, $rafiq, $sadia, $karim);
         $this->menus();
 
         // The demo's sections-built "Home" page would hide the course
@@ -218,6 +222,80 @@ class LmsSeeder extends Seeder
         }
 
         $enrollment->syncCompletion();
+    }
+
+    /** Coupons, a quiz, a Q&A thread and an announcement. */
+    private function extras(array $made, User $rafiq, User $sadia, User $karim): void
+    {
+        $laravel = $made['Laravel from Scratch'];
+
+        Coupon::updateOrCreate(['code' => 'EID50'], [
+            'description' => 'Eid campaign — half price on everything', 'type' => 'percent', 'value' => 50,
+            'max_uses' => 200, 'max_uses_per_user' => 1, 'expires_at' => now()->addMonth(), 'is_active' => true,
+        ]);
+        Coupon::updateOrCreate(['code' => 'LAUNCH500'], [
+            'description' => 'Launch offer for the Laravel course', 'type' => 'fixed', 'value' => 500,
+            'max_uses' => 50, 'max_uses_per_user' => 1, 'is_active' => true,
+        ])->courses()->sync([$laravel->id]);
+        Coupon::updateOrCreate(['code' => 'FREEUI'], [
+            'description' => 'Scholarship — UI Design for free', 'type' => 'percent', 'value' => 100,
+            'max_uses' => 5, 'max_uses_per_user' => 1, 'is_active' => true,
+        ])->courses()->sync([$made['UI Design Fundamentals']->id]);
+
+        // A quiz closing "Data and Eloquent".
+        $section = $laravel->sections()->where('title', 'Data and Eloquent')->first();
+        if ($section && ! Lesson::where('course_section_id', $section->id)->where('type', 'quiz')->exists()) {
+            $quiz = Lesson::create([
+                'course_id' => $laravel->id, 'course_section_id' => $section->id, 'title' => 'Quiz: data and Eloquent',
+                'type' => 'quiz', 'body' => '<p>Five quick questions on what this section covered. You need 60% to move on.</p>',
+                'duration_minutes' => 5, 'pass_mark' => 60, 'max_attempts' => 3, 'position' => 99,
+            ]);
+            $questions = [
+                ['Which command runs the migrations?', 'single', [['php artisan migrate', true], ['php artisan db:seed', false], ['composer migrate', false]], 'migrate creates the tables; db:seed fills them.'],
+                ['Which are Eloquent relationship methods?', 'multiple', [['hasMany', true], ['belongsTo', true], ['joinTable', false], ['belongsToMany', true]], 'joinTable is not an Eloquent method.'],
+                ["A model's table name is guessed from its class name.", 'true_false', [['True', true], ['False', false]], 'Post is stored in "posts" unless you set $table.'],
+                ['Where do seeders live?', 'single', [['database/seeders', true], ['app/Seeders', false], ['resources/seeds', false]], null],
+                ['What does $fillable protect against?', 'single', [['Mass assignment of unexpected columns', true], ['SQL injection', false], ['Slow queries', false]], 'It lists the columns create() and update() may fill.'],
+            ];
+            foreach ($questions as $i => [$text, $type, $options, $why]) {
+                QuizQuestion::create([
+                    'lesson_id' => $quiz->id, 'question' => $text, 'type' => $type, 'position' => $i, 'explanation' => $why,
+                    'options' => array_map(fn ($o) => ['text' => $o[0], 'correct' => $o[1]], $options),
+                ]);
+            }
+
+            // A new lesson changes who has finished the course.
+            Enrollment::where('course_id', $laravel->id)->get()->each->syncCompletion();
+        }
+
+        $lesson = $laravel->orderedLessons()->get(4);
+        if ($lesson && Discussion::where('lesson_id', $lesson->id)->doesntExist()) {
+            $question = Discussion::create([
+                'course_id' => $laravel->id, 'lesson_id' => $lesson->id, 'user_id' => $karim->id,
+                'body' => 'When should I use belongsToMany instead of hasMany? My posts can have several tags.',
+            ]);
+            Discussion::create([
+                'course_id' => $laravel->id, 'lesson_id' => $lesson->id, 'user_id' => $rafiq->id, 'parent_id' => $question->id,
+                'body' => "Tags are many-to-many: a post has many tags and a tag has many posts, so use belongsToMany with a post_tag pivot table. hasMany is for one-to-many, like a post's comments.",
+            ]);
+            $question->update(['is_resolved' => true]);
+            Discussion::create([
+                'course_id' => $laravel->id, 'lesson_id' => $lesson->id, 'user_id' => $sadia->id,
+                'body' => 'Is it fine to eager load relationships inside a loop, or should it always be done before?',
+            ]);
+        }
+
+        if ($laravel->announcements()->doesntExist()) {
+            $laravel->announcements()->create([
+                'user_id' => $rafiq->id,
+                'title' => 'New: a quiz at the end of "Data and Eloquent"',
+                'body' => 'Test yourself before moving on to users and security — you need 60% to unlock the next section.
+Good luck!',
+            ]);
+        }
+
+        // Sadia saved the Python course for later.
+        $sadia->wishlist()->syncWithoutDetaching([$made['Python for Data Analysis']->id, $made['Freelancing for Developers']->id]);
     }
 
     /** Replaces the blog demo's menus (which link to draft pages) with the school's. */

@@ -1,5 +1,5 @@
 import { api } from '../api.js'
-import * as tree from '../lib/treeList.js'
+import * as tree from '../lib/tree-list.js'
 
 const MAX_DEPTH = 2
 
@@ -26,7 +26,7 @@ function blankCategory() {
  *   • **One category at a time** — name, slug, description, image, SEO. Too
  *     much to batch, and each save is a single meaningful edit.
  *   • **Order and nesting** — dragging one row changes several, so the whole
- *     tree goes in one request. lib/treeList.js owns the flat-list-with-depth
+ *     tree goes in one request. lib/tree-list.js owns the flat-list-with-depth
  *     shape, the same one Menu control uses.
  *
  * Deleting says out loud what happens to everything attached: posts go where

@@ -25,8 +25,11 @@ const NAV_GROUPS = [
     items: [
       { key: 'courses', label: 'Courses', mono: 'CO', permission: 'courses.view' },
       { key: 'payments', label: 'Payments', mono: 'PY', permission: 'enrollments.view' },
+      { key: 'coupons', label: 'Coupons', mono: 'CP', permission: 'coupons.view' },
       { key: 'enrollments', label: 'Enrollments', mono: 'EN', permission: 'enrollments.view' },
       { key: 'students', label: 'Students', mono: 'SD', permission: 'enrollments.view' },
+      { key: 'discussions', label: 'Q&A', mono: 'QA', permission: 'courses.view' },
+      { key: 'reports', label: 'Reports', mono: 'RE', permission: 'courses.view' },
     ],
   },
   {
@@ -60,7 +63,7 @@ const TITLES = {
 
 // Screens not in this list land in later parts; the shell shows a
 // placeholder for them rather than a dead link.
-const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'courses', 'payments', 'enrollments', 'students', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account']
+const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'courses', 'payments', 'coupons', 'enrollments', 'students', 'discussions', 'reports', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account']
 
 export default {
   screen: 'dashboard',

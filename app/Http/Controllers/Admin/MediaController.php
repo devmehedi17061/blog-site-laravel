@@ -12,7 +12,6 @@ use App\Models\Media;
 use App\Support\ImageVariants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {

@@ -71,4 +71,14 @@ class SitePart extends Model
     {
         return $this->kind === 'header' && (bool) ($this->settings['sticky'] ?? true);
     }
+
+    /**
+     * Whether the template places a site token, e.g. usesToken('language').
+     * Asked here rather than in Blade, where a literal '{{ language }}' would
+     * itself be compiled as an echo.
+     */
+    public function usesToken(string $token): bool
+    {
+        return (bool) preg_match('/\{\{\s*'.preg_quote($token, '/').'\s*\}\}/', (string) $this->html);
+    }
 }

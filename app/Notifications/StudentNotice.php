@@ -13,6 +13,11 @@ use Illuminate\Notifications\Notification;
  *
  * Send through App\Support\Lms::notify(), which never lets a mail problem
  * undo the action that caused the notice.
+ *
+ * Title, body and action are English templates (":course is open") with
+ * their values in $params. They are stored that way and put into words when
+ * read — the panel in the student's current language, the email in the one
+ * on their account — so one notice reads right in English and in Bangla.
  */
 class StudentNotice extends Notification
 {
@@ -25,22 +30,27 @@ class StudentNotice extends Notification
         public ?string $url = null,
         public string $tone = 'info',
         public ?string $action = null,
+        // Off for notices sent to a whole course at once: one request
+        // should not send hundreds of emails.
+        public bool $email = true,
+        public array $params = [],
     ) {}
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return $this->email ? ['database', 'mail'] : ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        // Sent inside the student's own locale (User::preferredLocale()).
         $mail = (new MailMessage)
-            ->subject($this->title)
-            ->greeting('Hello '.strtok((string) $notifiable->name, ' ').',')
-            ->line($this->body);
+            ->subject(__($this->title, $this->params))
+            ->greeting(__('Hello :name,', ['name' => strtok((string) $notifiable->name, ' ')]))
+            ->line(__($this->body, $this->params));
 
         if ($this->url) {
-            $mail->action($this->action ?? 'Open', $this->url);
+            $mail->action(__($this->action ?? 'Open', $this->params), $this->url);
         }
 
         return $mail;
@@ -54,6 +64,7 @@ class StudentNotice extends Notification
             'url' => $this->url,
             'tone' => $this->tone,
             'action' => $this->action,
+            'params' => $this->params,
         ];
     }
 }

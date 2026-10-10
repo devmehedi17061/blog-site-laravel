@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 class Post extends Model
 {
@@ -194,6 +195,6 @@ class Post extends Model
 
         return in_array($this->getOriginal('status'), ['Published', 'Scheduled'], true)
             && $date !== null
-            && \Illuminate\Support\Carbon::parse($date)->lte(now());
+            && Carbon::parse($date)->lte(now());
     }
 }

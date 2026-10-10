@@ -1,5 +1,5 @@
 {{--
-  A small rich text box (lib/sections/fieldEditor.js) for any field.
+  A small rich text box (lib/sections/field-editor.js) for any field.
 
   @param string $read         JS expression giving the current HTML
   @param string $write        JS expression of one argument, `html`, that stores it

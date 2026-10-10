@@ -4,9 +4,11 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ValidatesPageFields;
 use App\Models\Page;
+use App\Support\CustomCode;
 use App\Support\PageTemplates;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StorePageRequest extends FormRequest
 {
@@ -24,8 +26,8 @@ class StorePageRequest extends FormRequest
     }
 
     /** JavaScript on a page runs in every visitor's browser: Super Admin only. */
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        \App\Support\CustomCode::guard($validator, $this, null);
+        CustomCode::guard($validator, $this, null);
     }
 }

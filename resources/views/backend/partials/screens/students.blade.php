@@ -7,6 +7,7 @@
       <h2>Students</h2>
       <div class="page-subtitle">Learner accounts and how far they have got. Passwords and suspensions are under User management.</div>
     </div>
+    <a class="btn btn-secondary" href="/admin/api/students/export">⬇ Download CSV</a>
     <button x-show="$store.auth.can('users.view')" class="btn btn-secondary" @click="$store.ui.go('users')">User management</button>
   </div>
 

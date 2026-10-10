@@ -17,7 +17,7 @@
   @once
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   @endonce
-  <noscript><p class="cms-help">This form needs JavaScript on, to check you are not a robot.</p></noscript>
+  <noscript><p class="cms-help">{{ __('This form needs JavaScript on, to check you are not a robot.') }}</p></noscript>
 @elseif ($provider === 'recaptcha')
   <input type="hidden" name="g-recaptcha-response" value="" data-recaptcha="{{ $guard->siteKey() }}">
   @once
@@ -44,8 +44,8 @@
     </script>
   @endonce
   <p class="cms-help cms-captcha-note">
-    Protected by reCAPTCHA — Google's
-    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy</a> and
-    <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply.
+    {{ __('Protected by reCAPTCHA — Google\'s') }}
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">{{ __('Privacy') }}</a> {{ __('and') }}
+    <a href="https://policies.google.com/terms" target="_blank" rel="noopener">{{ __('Terms') }}</a> {{ __('apply.') }}
   </p>
 @endif

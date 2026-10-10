@@ -7,6 +7,7 @@
       <h2>Payments</h2>
       <div class="page-subtitle">Check what students paid — match the transaction ID with your bKash / Nagad / bank statement, then verify or reject</div>
     </div>
+    <button class="btn btn-secondary" @click="exportCsv()">⬇ Download CSV</button>
   </div>
 
   <template x-if="error">
@@ -48,12 +49,26 @@
       </div>
     </div>
 
+    {{-- several at once --}}
+    <div class="flex flex-wrap items-center gap-3 border-b border-line bg-muted px-5 py-2.5 text-[13px]" x-show="pendingRows.length">
+      <label class="flex cursor-pointer items-center gap-2">
+        <input type="checkbox" :checked="allSelected" @change="toggleAll()" class="accent-[var(--color-accent)]">
+        Select all waiting on this page
+      </label>
+      <span class="text-neutral-500" x-show="selected.length" x-text="`${selected.length} selected`"></span>
+      <button class="btn btn-primary btn-sm ml-auto" x-show="selected.length" @click="verifySelected()" x-text="`✓ Verify selected (${selected.length})`"></button>
+    </div>
+
     <div x-show="loading" class="table-empty">Loading payments…</div>
     <div x-show="!loading && !rows.length" class="table-empty" x-text="query.status === 'Pending' ? 'Nothing waiting — every payment has been checked. ✓' : 'No payments match this view.'"></div>
 
     {{-- one card per payment: everything needed to decide, in one place --}}
     <template x-for="row in rows" :key="row.id">
       <div class="flex flex-wrap gap-5 border-b border-line p-5 last:border-0" :class="row.status === 'Pending' && 'bg-[#fffdf6]'">
+
+        <label class="flex-none self-start pt-1" x-show="row.status === 'Pending' && row.can.review" title="Select">
+          <input type="checkbox" :checked="selected.includes(row.id)" @change="toggleSelect(row.id)" class="h-4 w-4 accent-[var(--color-accent)]">
+        </label>
 
         {{-- screenshot --}}
         <div class="w-[120px] flex-none">

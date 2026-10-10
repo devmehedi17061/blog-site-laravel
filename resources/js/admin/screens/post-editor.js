@@ -1,8 +1,8 @@
 import { api } from '../api.js'
-import { createEditor, TEXT_COLORS, HIGHLIGHTS } from '../lib/richEditor.js'
-import { IMAGE_SIZES, IMAGE_ALIGNS } from '../lib/postImage.js'
+import { createEditor, TEXT_COLORS, HIGHLIGHTS } from '../lib/rich-editor.js'
+import { IMAGE_SIZES, IMAGE_ALIGNS } from '../lib/post-image.js'
 import { analyse, effectiveTitle, effectiveDescription, effectiveSlug, snippet } from '../lib/seo.js'
-import { seoPanel } from '../lib/seoPanel.js'
+import { seoPanel } from '../lib/seo-panel.js'
 import { extend } from '../lib/extend.js'
 import { revisionHistory } from '../lib/revisions.js'
 

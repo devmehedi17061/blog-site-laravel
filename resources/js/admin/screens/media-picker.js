@@ -1,5 +1,5 @@
 import { extend } from '../lib/extend.js'
-import { mediaBrowser } from '../lib/mediaBrowser.js'
+import { mediaBrowser } from '../lib/media-browser.js'
 
 /** The library, trimmed to a modal whose only job is to return one file. */
 export default function mediaPicker() {

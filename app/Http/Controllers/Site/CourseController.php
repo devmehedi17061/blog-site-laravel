@@ -4,17 +4,33 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\LessonCompletion;
+use App\Support\Lms;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /** The public course catalogue and each course's sales page. */
 class CourseController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        // A promo link for the whole catalogue: applies at any checkout it is valid for.
+        if ($request->filled('coupon')) {
+            $coupon = Coupon::findByCode($request->query('coupon'));
+            if ($coupon && $coupon->is_active && ! ($coupon->expires_at?->isPast())) {
+                $request->session()->put('coupons.any', $coupon->code);
+                $request->session()->flash('status', __('Coupon :code (:discount) is ready — it is taken off at the checkout.', ['code' => $coupon->code, 'discount' => $coupon->label()]));
+            } else {
+                $request->session()->flash('status', __('That coupon is not valid any more.'));
+            }
+
+            return redirect()->route('courses.index', $request->except('coupon'));
+        }
+
         $sort = $request->query('sort', 'newest');
         $category = $request->query('category')
             ? Category::where('slug', $request->query('category'))->first()
@@ -55,9 +71,18 @@ class CourseController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $slug): View
+    public function show(Request $request, string $slug): View|RedirectResponse
     {
         $course = $this->findForViewer($request, $slug);
+
+        // A promo link (/courses/x?coupon=EID50): kept for the checkout,
+        // for a visitor who signs in on the way too.
+        if ($request->filled('coupon')) {
+            EnrollController::applyFromLink($request, $course);
+
+            return redirect()->route('courses.show', $course->slug);
+        }
+        $coupon = EnrollController::appliedCoupon($request, $course);
         $course->load(['instructor:id,name', 'category:id,name,slug', 'thumbnail', 'sections.lessons']);
         $course->loadCount(['lessons', 'enrollments' => fn ($q) => $q->where('status', 'Active')]);
 
@@ -83,6 +108,10 @@ class CourseController extends Controller
                 : [],
             'related' => $related,
             'previewing' => ! $course->isPublished(),
+            'coupon' => $coupon,
+            'price' => Lms::priceFor($course, $coupon),
+            'wishlisted' => $user ? $user->wishlist()->whereKey($course->id)->exists() : false,
+            'announcements' => $enrollment?->isActive() ? $course->announcements()->with('author:id,name')->limit(5)->get() : collect(),
         ]);
     }
 

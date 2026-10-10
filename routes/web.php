@@ -3,15 +3,19 @@
 use App\Http\Controllers\Site\BlogController;
 use App\Http\Controllers\Site\CertificateController;
 use App\Http\Controllers\Site\CourseController;
+use App\Http\Controllers\Site\DiscussionController;
 use App\Http\Controllers\Site\EnrollController;
 use App\Http\Controllers\Site\FormSubmissionController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\LanguageController;
 use App\Http\Controllers\Site\LearnController;
 use App\Http\Controllers\Site\PageController;
+use App\Http\Controllers\Site\QuizController;
 use App\Http\Controllers\Site\ReviewController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Controllers\Site\StudentAuthController;
 use App\Http\Controllers\Site\StudentDashboardController;
+use App\Http\Controllers\Site\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,13 +46,28 @@ Route::middleware(['site.language', 'site.open'])->group(function () {
     Route::get('/learn/{slug}/{lesson}/video', [LearnController::class, 'video'])
         ->whereNumber('lesson')->name('learn.video');
 
+    // Anyone can check a certificate number.
+    Route::get('/certificates/verify', [CertificateController::class, 'verify'])
+        ->middleware('throttle:30,1')->name('certificates.verify');
+
     Route::middleware(['auth', 'active'])->group(function () {
+        Route::post('/courses/{slug}/wishlist', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+        Route::get('/my-wishlist', [WishlistController::class, 'index'])->name('student.wishlist');
         Route::post('/courses/{slug}/enroll', [EnrollController::class, 'store'])->name('courses.enroll');
         Route::get('/courses/{slug}/checkout', [EnrollController::class, 'checkout'])->name('courses.checkout');
         Route::post('/courses/{slug}/checkout', [EnrollController::class, 'pay'])
             ->middleware('throttle:10,1')->name('courses.pay');
+        Route::post('/courses/{slug}/coupon', [EnrollController::class, 'applyCoupon'])
+            ->middleware('throttle:20,1')->name('courses.coupon.apply');
+        Route::delete('/courses/{slug}/coupon', [EnrollController::class, 'removeCoupon'])->name('courses.coupon.remove');
         Route::post('/courses/{slug}/review', [ReviewController::class, 'store'])
             ->middleware('throttle:10,1')->name('courses.review');
+        Route::post('/learn/{slug}/{lesson}/discussions', [DiscussionController::class, 'store'])
+            ->whereNumber('lesson')->middleware('throttle:10,1')->name('discussions.store');
+        Route::post('/discussions/{discussion}/resolve', [DiscussionController::class, 'resolve'])->name('discussions.resolve');
+        Route::delete('/discussions/{discussion}', [DiscussionController::class, 'destroy'])->name('discussions.destroy');
+        Route::post('/learn/{slug}/{lesson}/quiz', [QuizController::class, 'submit'])
+            ->whereNumber('lesson')->middleware('throttle:20,1')->name('learn.quiz');
         Route::post('/learn/{slug}/{lesson}/complete', [LearnController::class, 'complete'])
             ->whereNumber('lesson')->name('learn.complete');
 
@@ -95,6 +114,9 @@ Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/feed', [SitemapController::class, 'feed'])->middleware('site.language')->name('feed');
 
+// The বাংলা / EN switch.
+Route::get('/language/{locale}', LanguageController::class)->whereIn('locale', ['en', 'bn'])->name('language.switch');
+
 require __DIR__.'/admin.php';
 
 /*
@@ -105,5 +127,5 @@ Route::get('/{slug}', [PageController::class, 'show'])
     ->middleware(['site.language', 'site.open'])
     // Whole segments only — a bare prefix would swallow real slugs such as
     // "builder-guide", which starts with "build".
-    ->where('slug', '^(?!(admin|blog|category|courses|learn|storage|build|up)(/|$)).*$')
+    ->where('slug', '^(?!(admin|blog|category|courses|certificates|learn|language|storage|build|up)(/|$)).*$')
     ->name('page.show');

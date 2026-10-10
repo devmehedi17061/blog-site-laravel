@@ -36,6 +36,7 @@
             <span class="ml-1 inline-block h-2 w-2 bg-accent align-middle" x-show="curriculumDirty" title="Unsaved changes"></span>
           </button>
           <button type="button" class="tab" :class="tab === 'seo' && 'tab-active'" @click="tab = 'seo'">SEO</button>
+          <button type="button" class="tab" :class="tab === 'news' && 'tab-active'" @click="openNews()" x-show="!isNew">Announcements</button>
         </div>
 
         {{-- ── details ─────────────────────────────────────────────── --}}
@@ -109,12 +110,14 @@
             <span><strong class="text-ink" x-text="curriculum.length"></strong> sections</span>
             <span><strong class="text-ink" x-text="lessonCount"></strong> lessons</span>
             <span><strong class="text-ink" x-text="totalLength"></strong> in total</span>
-            <span class="ml-auto">Changes here are kept when you press <strong class="text-ink">Save</strong>.</span>
+            <span class="ml-auto">Drag ⋮⋮ to reorder — lessons can move between sections. Changes are kept when you press <strong class="text-ink">Save</strong>.</span>
           </div>
 
           <template x-for="(section, s) in curriculum" :key="section.id ?? `new-${s}`">
-            <section class="panel">
+            <section class="panel transition-shadow" :class="isDropTarget('section', s) && 'ring-2 ring-accent'"
+                     @dragover.prevent="dragOver('section', s)" @drop.prevent="drop('section', s)">
               <div class="flex items-center gap-2 border-b border-line bg-muted px-3 py-2">
+                <span class="drag-handle" draggable="true" @dragstart="dragStart($event, 'section', s)" @dragend="dragEnd()" title="Drag to move the section">⋮⋮</span>
                 <button type="button" class="row-action" @click="section._open = section._open === false" :title="section._open === false ? 'Expand' : 'Collapse'">
                   <span x-text="section._open === false ? '▸' : '▾'"></span>
                 </button>
@@ -131,9 +134,14 @@
               <div x-show="section._open !== false">
                 <template x-for="(item, l) in section.lessons" :key="item.id ?? `new-${s}-${l}`">
                   <div class="flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-0"
-                       :class="Object.keys(curriculumErrors).some(k => k.startsWith(`sections.${s}.lessons.${l}.`)) && 'bg-accent-100'">
+                       draggable="true" @dragstart.stop="dragStart($event, 'lesson', s, l)" @dragend="dragEnd()"
+                       @dragover.prevent.stop="dragOver('lesson', s, l)" @drop.prevent.stop="drop('lesson', s, l)"
+                       :class="[Object.keys(curriculumErrors).some(k => k.startsWith(`sections.${s}.lessons.${l}.`)) && 'bg-accent-100',
+                                isDropTarget('lesson', s, l) && 'shadow-[inset_0_3px_0_var(--color-accent)]',
+                                drag?.kind === 'lesson' && drag.s === s && drag.l === l && 'opacity-40']">
+                    <span class="drag-handle" title="Drag to move the lesson">⋮⋮</span>
                     <span class="w-5 text-right text-[11px] text-neutral-500" x-text="l + 1"></span>
-                    <span class="tag" :class="item.type === 'video' ? 'tag-accent-2' : 'tag-neutral'" x-text="item.type === 'video' ? 'Video' : 'Article'"></span>
+                    <span class="tag" :class="{ video: 'tag-accent-2', quiz: 'tag-accent' }[item.type] ?? 'tag-neutral'" x-text="item.type === 'quiz' ? `Quiz · ${item.questions?.length ?? 0}` : (item.type === 'video' ? 'Video' : 'Article')"></span>
                     <button type="button" class="min-w-0 flex-1 truncate text-left text-[14px] font-semibold hover:text-accent" @click="editLesson(s, l)" x-text="item.title"></button>
                     <span x-show="item.type === 'video' && item.video_path" class="tag tag-outline" title="Uploaded — plays only for enrolled students">🔒 Private video</span>
                     <span x-show="item.is_preview" class="tag tag-outline">Free preview</span>
@@ -142,6 +150,7 @@
                     <div class="row-actions">
                       <button type="button" class="row-action" title="Move up" @click="move(section.lessons, l, -1)" :disabled="l === 0">↑</button>
                       <button type="button" class="row-action" title="Move down" @click="move(section.lessons, l, 1)" :disabled="l === section.lessons.length - 1">↓</button>
+                      <button type="button" class="row-action" title="Duplicate" @click="duplicateLesson(s, l)">⧉</button>
                       <button type="button" class="row-action" title="Edit" @click="editLesson(s, l)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                       </button>
@@ -161,6 +170,45 @@
           </div>
 
           <div><button type="button" class="btn btn-primary" @click="addSection()">+ Add section</button></div>
+        </div>
+
+        {{-- ── announcements ─────────────────────────────────────────── --}}
+        <div x-show="tab === 'news'" class="flex flex-col gap-5">
+          <form class="panel" @submit.prevent="sendNews()">
+            <div class="panel-head"><span class="h-2.5 w-2.5 bg-accent"></span> New announcement
+              <span class="ml-auto text-[12px] font-normal normal-case tracking-normal text-neutral-400" x-text="`Goes to ${news.students} enrolled student${news.students === 1 ? '' : 's'}`"></span>
+            </div>
+            <div class="flex flex-col gap-3 p-4">
+              <div class="field">
+                <label>Title</label>
+                <input class="input" x-model="news.draft.title" maxlength="180" required placeholder="New lesson added: deploying with Docker">
+                <p class="field-error" x-show="news.errors.title" x-text="news.errors.title?.[0]"></p>
+              </div>
+              <div class="field">
+                <label>Message</label>
+                <textarea class="input !min-h-[110px] py-2" x-model="news.draft.body" maxlength="5000" required
+                          placeholder="What is new, and what should students do?"></textarea>
+                <p class="field-error" x-show="news.errors.body" x-text="news.errors.body?.[0]"></p>
+              </div>
+              <p class="text-[12px] text-neutral-500">Students get it in their Notifications, and it shows at the top of the course page while they are on it.</p>
+              <div><button class="btn btn-primary" :disabled="news.sending" x-text="news.sending ? 'Sending…' : 'Send to students'"></button></div>
+            </div>
+          </form>
+
+          <section class="panel">
+            <div class="panel-head"><span class="h-2.5 w-2.5 bg-accent"></span> Sent</div>
+            <template x-for="row in news.rows" :key="row.id">
+              <div class="border-b border-line px-4 py-3 last:border-0">
+                <div class="flex items-baseline gap-2">
+                  <strong class="text-[14px]" x-text="row.title"></strong>
+                  <span class="text-[12px] text-neutral-500" x-text="`${row.author ?? ''} · ${row.date}`"></span>
+                  <button type="button" class="row-action row-action-danger ml-auto" title="Delete" @click="deleteNews(row)">×</button>
+                </div>
+                <p class="mt-1 whitespace-pre-line text-[13px] text-neutral-700" x-text="row.body"></p>
+              </div>
+            </template>
+            <div class="table-empty" x-show="!news.rows.length">Nothing sent yet.</div>
+          </section>
         </div>
 
         {{-- ── seo ──────────────────────────────────────────────────── --}}
@@ -326,6 +374,7 @@
               <div class="chip-group">
                 <button type="button" class="chip" :class="lesson.type === 'video' && 'chip-active'" @click="lesson.type = 'video'">Video</button>
                 <button type="button" class="chip" :class="lesson.type === 'article' && 'chip-active'" @click="lesson.type = 'article'">Article</button>
+                <button type="button" class="chip" :class="lesson.type === 'quiz' && 'chip-active'" @click="lesson.type = 'quiz'; if (!lesson.questions.length) addQuestion()">Quiz</button>
               </div>
             </div>
             <div class="field">
@@ -339,6 +388,69 @@
                   <option :value="s" x-text="`${s + 1}. ${section.title}`" :selected="s === lesson._section"></option>
                 </template>
               </select>
+            </div>
+          </div>
+
+          {{-- ── the quiz ──────────────────────────────────────────────── --}}
+          <div x-show="lesson.type === 'quiz'" class="flex flex-col gap-4 border border-line-strong bg-muted p-4">
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="field">
+                <label>Pass mark (%)</label>
+                <input type="number" min="1" max="100" class="input" x-model.number="lesson.pass_mark">
+              </div>
+              <div class="field">
+                <label>Tries allowed</label>
+                <input type="number" min="0" max="100" class="input" x-model.number="lesson.max_attempts">
+                <p class="mt-1 text-[11px] text-neutral-500">0 = unlimited</p>
+              </div>
+              <label class="switch-row !p-0 self-center">
+                <input type="checkbox" class="switch" x-model="lesson.shuffle_questions">
+                <span><strong>Shuffle</strong><span>Questions in a new order each try.</span></span>
+              </label>
+            </div>
+
+            <template x-for="(q, qi) in lesson.questions" :key="qi">
+              <div class="border border-line-strong bg-surface p-3" data-question>
+                <div class="mb-2 flex flex-wrap items-center gap-2">
+                  <span class="grid h-6 w-6 place-items-center bg-neutral-900 font-heading text-[11px] font-bold text-white" x-text="qi + 1"></span>
+                  <select class="input !h-[30px] w-[170px] !text-[12px]" :value="q.type" @change="setQuestionType(q, $event.target.value)">
+                    <option value="single">One right answer</option>
+                    <option value="multiple">Several right answers</option>
+                    <option value="true_false">True / false</option>
+                  </select>
+                  <label class="flex items-center gap-1 text-[12px] text-neutral-600">Points
+                    <input type="number" min="1" max="100" class="input !h-[30px] w-[60px] !text-[12px]" x-model.number="q.points">
+                  </label>
+                  <span class="ml-auto"></span>
+                  <button type="button" class="row-action" title="Move up" @click="move(lesson.questions, qi, -1)" :disabled="qi === 0">↑</button>
+                  <button type="button" class="row-action" title="Move down" @click="move(lesson.questions, qi, 1)" :disabled="qi === lesson.questions.length - 1">↓</button>
+                  <button type="button" class="row-action row-action-danger" title="Remove question" @click="removeQuestion(qi)">×</button>
+                </div>
+                <textarea class="input !min-h-[56px] py-2 !text-[14px]" x-model="q.question" maxlength="2000" placeholder="The question"></textarea>
+
+                <div class="mt-2 flex flex-col gap-1.5">
+                  <template x-for="(opt, oi) in q.options" :key="oi">
+                    <div class="flex items-center gap-2">
+                      <button type="button" @click="markCorrect(q, oi)"
+                              class="grid h-[30px] w-[30px] flex-none place-items-center border text-[13px] font-bold"
+                              :class="opt.correct ? 'border-success-800 bg-success-800 text-white' : 'border-line-strong text-neutral-400 hover:border-success-800'"
+                              :title="opt.correct ? 'Right answer' : 'Mark as right'">✓</button>
+                      <input class="input !h-[30px] !text-[13px]" x-model="opt.text" maxlength="500" :readonly="q.type === 'true_false'"
+                             :placeholder="`Answer ${String.fromCharCode(65 + oi)}`">
+                      <button type="button" class="row-action" x-show="q.type !== 'true_false' && q.options.length > 2" @click="removeOption(q, oi)" title="Remove answer">×</button>
+                    </div>
+                  </template>
+                  <button type="button" class="self-start text-[12px] font-semibold text-accent-700" x-show="q.type !== 'true_false' && q.options.length < 10" @click="addOption(q)">+ Add answer</button>
+                </div>
+
+                <input class="input mt-2 !h-[30px] !text-[12px]" x-model="q.explanation" maxlength="2000" placeholder="Why this is the answer (shown after the quiz) — optional">
+              </div>
+            </template>
+
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="btn btn-secondary btn-sm" @click="addQuestion('single')">+ One-answer question</button>
+              <button type="button" class="btn btn-secondary btn-sm" @click="addQuestion('multiple')">+ Several-answer question</button>
+              <button type="button" class="btn btn-secondary btn-sm" @click="addQuestion('true_false')">+ True / false</button>
             </div>
           </div>
 
@@ -412,7 +524,7 @@
           </div>
 
           <div class="field">
-            <label x-text="lesson.type === 'video' ? 'Notes under the video' : 'Lesson text'"></label>
+            <label x-text="{ video: 'Notes under the video', quiz: 'Instructions before the quiz (optional)' }[lesson.type] ?? 'Lesson text'"></label>
             @include('backend.partials.rich-field', [
               'read' => 'lesson.body',
               'write' => 'lesson.body = html',

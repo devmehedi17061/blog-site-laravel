@@ -7,10 +7,13 @@ use App\Http\Requests\SaveCourseRequest;
 use App\Http\Resources\CourseResource;
 use App\Models\ActivityLog;
 use App\Models\Course;
+use App\Support\LessonVideos;
 use App\Support\Slug;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
@@ -84,6 +87,58 @@ class CourseController extends Controller
         ActivityLog::record('Updated course', $course->title, $course);
 
         return CourseResource::make($course->load(self::RELATIONS));
+    }
+
+    /**
+     * A copy to start the next course from: details, curriculum, quiz
+     * questions and uploaded videos (copied into the new course's own
+     * folder). Saved as a draft; students, payments and reviews stay behind.
+     */
+    public function duplicate(Request $request, Course $course): JsonResponse
+    {
+        $this->authorize('view', $course);
+        $this->authorize('create', Course::class);
+
+        $copy = DB::transaction(function () use ($request, $course) {
+            $copy = $course->replicate(['slug', 'published_at', 'deleted_at', 'deleted_by']);
+            $copy->fill([
+                'title' => Str::limit($course->title.' (copy)', 180, ''),
+                'slug' => Slug::unique(Course::class, $course->title.' copy'),
+                'status' => 'Draft',
+                'published_at' => null,
+                'is_featured' => false,
+                'user_id' => $request->user()->role?->scope === 'Own content' ? $request->user()->id : $course->user_id,
+            ])->save();
+
+            foreach ($course->sections()->with('lessons.questions')->get() as $section) {
+                $newSection = $section->replicate()->fill(['course_id' => $copy->id]);
+                $newSection->save();
+
+                foreach ($section->lessons as $lesson) {
+                    $newLesson = $lesson->replicate()->fill(['course_id' => $copy->id, 'course_section_id' => $newSection->id]);
+
+                    if ($lesson->hasUpload() && LessonVideos::disk()->exists($lesson->video_path)) {
+                        $path = $copy->id.'/'.Str::random(40).'.'.pathinfo($lesson->video_path, PATHINFO_EXTENSION);
+                        LessonVideos::disk()->copy($lesson->video_path, $path);
+                        $newLesson->video_path = $path;
+                    } else {
+                        $newLesson->video_path = null;
+                    }
+
+                    $newLesson->save();
+
+                    foreach ($lesson->questions as $question) {
+                        $question->replicate()->fill(['lesson_id' => $newLesson->id])->save();
+                    }
+                }
+            }
+
+            return $copy;
+        });
+
+        ActivityLog::record('Duplicated course', $course->title.' → '.$copy->title, $copy);
+
+        return response()->json(['message' => 'Copied as a draft: '.$copy->title, 'id' => $copy->id], 201);
     }
 
     public function destroy(Course $course): JsonResponse

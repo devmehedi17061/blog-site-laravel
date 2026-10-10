@@ -125,11 +125,12 @@ class EnrollmentController extends Controller
         ], active: true);
 
         Lms::notify($student, new StudentNotice(
-            'You are enrolled in '.$course->title,
+            'You are enrolled in :course',
             'The course is open in your student panel — start whenever you are ready.',
             route('learn.show', $course->slug),
             'success',
             'Start learning',
+            params: ['course' => $course->title],
         ));
 
         return response()->json([

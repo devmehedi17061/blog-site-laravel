@@ -42,7 +42,7 @@
             <div class="site-menu-node site-menu-top">
               <a @if ($item->url) href="{{ $item->url }}" @endif class="site-menu-link site-menu-top-link" @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
                 {!! \App\Support\MenuIcons::svg($item->icon) !!}
-                <span class="site-menu-text">{{ $item->label }}</span>
+                <span class="site-menu-text">{{ __($item->label) }}</span>
                 @if ($node['children'] && ($caret ?? 'triangle') !== 'none')
                   <span class="site-menu-caret" data-caret="{{ $caret ?? 'triangle' }}" aria-hidden="true">@include('frontend.partials.site-parts.caret', ['style' => $caret ?? 'triangle'])</span>
                 @endif
@@ -65,7 +65,7 @@
             @php $item = $node['item']; @endphp
             <li>
               <a @if ($item->url) href="{{ $item->url }}" @endif @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
-                {!! \App\Support\MenuIcons::svg($item->icon, 'menu-icon', 14) !!}<span>{{ $item->label }}</span>
+                {!! \App\Support\MenuIcons::svg($item->icon, 'menu-icon', 14) !!}<span>{{ __($item->label) }}</span>
               </a>
             </li>
           @endforeach
@@ -82,10 +82,15 @@
     @break
 
   @case('search')
-    <form action="{{ route('blog.index') }}" method="GET" role="search" class="sp-search">
-      <input type="search" name="q" value="{{ request('q') }}" placeholder="Search posts…" aria-label="Search">
-      <button type="submit">Search</button>
+    {{-- On a school's site, people are looking for courses. --}}
+    <form action="{{ route('courses.index') }}" method="GET" role="search" class="sp-search">
+      <input type="search" name="q" value="{{ request()->routeIs('courses.index') ? request('q') : '' }}" placeholder="{{ __('Search courses…') }}" aria-label="{{ __('Search courses') }}">
+      <button type="submit">{{ __('Search') }}</button>
     </form>
+    @break
+
+  @case('language')
+    @include('frontend.partials.language-switch')
     @break
 
   @case('social')
