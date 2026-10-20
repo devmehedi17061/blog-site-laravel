@@ -17,8 +17,9 @@ class SlugPreviewController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $text = $request->validate(['text' => ['nullable', 'string', 'max:300']])['text'] ?? '';
+        $text = (string) ($request->validate(['text' => ['nullable', 'string', 'max:300']])['text'] ?? '');
 
-        return response()->json(['slug' => Str::slug((string) $text)]);
+        // Pages can be nested (services/sap/training): their slashes stay.
+        return response()->json(['slug' => $request->boolean('path') ? \App\Support\Slug::path($text) : Str::slug($text)]);
     }
 }

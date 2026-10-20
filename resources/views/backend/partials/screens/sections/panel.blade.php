@@ -76,7 +76,7 @@
 
       <div class="min-h-0 flex-1">
         <template x-if="activeSection">
-          <iframe class="h-full min-h-[420px] w-full border-0" :srcdoc="previewDoc" title="Section preview"></iframe>
+          <div class="h-full min-h-[420px] w-full" x-live-frame="previewDoc" data-title="Section preview"></div>
         </template>
 
         <div x-show="!activeSection" class="p-4 text-[13px] text-neutral-600">No section selected.</div>

@@ -5,6 +5,12 @@
 
     RewriteEngine On
 
+    # Hidden files (.env, .git, .htaccess …) are never served.
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Nothing under /storage (visitors' and admins' uploads) runs as code.
+    RewriteRule ^storage/.*\.(php\d?|phtml|phar|pht|pl|py|cgi|sh|shtml)$ - [F,L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

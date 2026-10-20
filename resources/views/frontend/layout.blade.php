@@ -71,6 +71,10 @@
 
   @vite(['resources/css/app.css', 'resources/js/site.js'])
 
+  {{-- This site's own pack (sites/<name>/, SITE_PACK in .env): its
+       stylesheet and script, after the core's so they win. --}}
+  {{ \App\Support\SitePack::tags() }}
+
   {{-- Settings → Design: fonts, colours and widths, over the stylesheet. --}}
   @include('frontend.partials.design')
 

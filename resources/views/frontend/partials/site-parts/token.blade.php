@@ -8,6 +8,7 @@
    */
   $logo = $site->get('logo');
   $home = route('home');
+  $here = '/'.trim(request()->path(), '/');
 @endphp
 @switch($token)
   @case('site_brand')
@@ -38,9 +39,15 @@
       <nav class="sp-menu" aria-label="Main">
         <div class="site-menu">
           @foreach ($menus['Header'] as $node)
-            @php $item = $node['item']; @endphp
+            @php
+              $item = $node['item'];
+              // The page being shown, or one below it (/services/x under /services).
+              $target = '/'.trim((string) parse_url((string) $item->url, PHP_URL_PATH), '/');
+              $current = $item->href() && ! parse_url((string) $item->url, PHP_URL_HOST)
+                && ($target === $here || ($target !== '/' && str_starts_with($here, $target.'/')));
+            @endphp
             <div class="site-menu-node site-menu-top">
-              <a @if ($item->url) href="{{ $item->url }}" @endif class="site-menu-link site-menu-top-link" @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
+              <a @if ($item->href()) href="{{ $item->href() }}" @endif class="site-menu-link site-menu-top-link @if ($current) is-current @endif" @if ($current) aria-current="page" @endif @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
                 {!! \App\Support\MenuIcons::svg($item->icon) !!}
                 <span class="site-menu-text">{{ $item->label }}</span>
                 @if ($node['children'] && ($caret ?? 'triangle') !== 'none')
@@ -48,6 +55,11 @@
                 @endif
               </a>
               @if ($node['children'])
+                {{-- Opens the sub-menu in place on a touch screen, where there
+                     is no hover. Hidden unless a header's CSS shows it. --}}
+                <button type="button" class="site-menu-expand" aria-expanded="false" aria-label="Show the {{ $item->label }} menu">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
                 @include('frontend.partials.menu-branch', ['branch' => $node['children']])
               @endif
             </div>
@@ -64,7 +76,7 @@
           @foreach ($menus['Footer'] as $node)
             @php $item = $node['item']; @endphp
             <li>
-              <a @if ($item->url) href="{{ $item->url }}" @endif @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
+              <a @if ($item->href()) href="{{ $item->href() }}" @endif @if ($item->target === '_blank') target="_blank" rel="noopener" @endif>
                 {!! \App\Support\MenuIcons::svg($item->icon, 'menu-icon', 14) !!}<span>{{ $item->label }}</span>
               </a>
             </li>

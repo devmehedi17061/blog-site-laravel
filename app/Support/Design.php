@@ -20,13 +20,16 @@ class Design
      *
      * @var array<string, array{label: string, group: string, stack: string, google: ?string}>
      */
+    /** Added after every stack, as Tailwind's default sans stack does. */
+    public const EMOJI = ', "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
+
     public const FONTS = [
         'Archivo' => ['label' => 'Archivo', 'group' => 'Sans-serif', 'stack' => '"Archivo", system-ui, sans-serif', 'google' => 'Archivo:wght@400;600;700;800'],
         'Inter' => ['label' => 'Inter', 'group' => 'Sans-serif', 'stack' => '"Inter", system-ui, sans-serif', 'google' => 'Inter:wght@400;600;700;800'],
         'Roboto' => ['label' => 'Roboto', 'group' => 'Sans-serif', 'stack' => '"Roboto", system-ui, sans-serif', 'google' => 'Roboto:wght@400;500;700;900'],
         'Open Sans' => ['label' => 'Open Sans', 'group' => 'Sans-serif', 'stack' => '"Open Sans", system-ui, sans-serif', 'google' => 'Open+Sans:wght@400;600;700;800'],
         'Lato' => ['label' => 'Lato', 'group' => 'Sans-serif', 'stack' => '"Lato", system-ui, sans-serif', 'google' => 'Lato:wght@400;700;900'],
-        'Poppins' => ['label' => 'Poppins', 'group' => 'Sans-serif', 'stack' => '"Poppins", system-ui, sans-serif', 'google' => 'Poppins:wght@400;600;700;800'],
+        'Poppins' => ['label' => 'Poppins', 'group' => 'Sans-serif', 'stack' => '"Poppins", ui-sans-serif, system-ui, sans-serif', 'google' => 'Poppins:wght@400;500;600;700;800'],
         'Montserrat' => ['label' => 'Montserrat', 'group' => 'Sans-serif', 'stack' => '"Montserrat", system-ui, sans-serif', 'google' => 'Montserrat:wght@400;600;700;800'],
         'Nunito' => ['label' => 'Nunito', 'group' => 'Sans-serif', 'stack' => '"Nunito", system-ui, sans-serif', 'google' => 'Nunito:wght@400;600;700;800'],
         'DM Sans' => ['label' => 'DM Sans', 'group' => 'Sans-serif', 'stack' => '"DM Sans", system-ui, sans-serif', 'google' => 'DM+Sans:wght@400;600;700;800'],
@@ -105,8 +108,9 @@ class Design
             '--color-accent-900' => self::mix($p, '#000000', 0.32),
             '--color-ink' => $v['text'],
             '--color-bg' => $v['background'],
-            '--font-sans' => self::FONTS[$v['body_font']]['stack'],
-            '--font-heading' => self::FONTS[$v['heading_font']]['stack'],
+            // Symbols and emoji (⦿, ✓ …) fall back to the same fonts everywhere.
+            '--font-sans' => self::FONTS[$v['body_font']]['stack'].self::EMOJI,
+            '--font-heading' => self::FONTS[$v['heading_font']]['stack'].self::EMOJI,
             '--site-width' => $v['site_width'].'px',
             '--content-width' => $v['content_width'].'px',
             '--site-text-size' => $v['text_size'].'px',

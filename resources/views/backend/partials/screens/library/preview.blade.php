@@ -16,7 +16,7 @@
 
   <div class="lib-stage min-h-0 flex-1" x-ref="previewStage" x-init="watchPreviewStage()">
     <template x-if="draft">
-      <iframe class="lib-frame" :style="previewFrameStyle" :srcdoc="previewDoc" title="Section preview"></iframe>
+      <div class="lib-frame" :style="previewFrameStyle" x-live-frame="previewDoc" data-title="Section preview"></div>
     </template>
 
     <div x-show="!draft" class="p-4 text-[13px] text-neutral-600">Nothing to preview.</div>

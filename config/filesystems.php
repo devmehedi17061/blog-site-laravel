@@ -33,7 +33,11 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Off: private files are never linked to (no temporaryUrl), and
+            // Laravel's route for serving them would take /storage/{path},
+            // which the site uses for uploaded images where a host forbids
+            // the public/storage symlink (PublicStorageController).
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

@@ -94,6 +94,8 @@ export default function headerFooter() {
     previewing: false,
     previewError: '',
     previewScroll: 0,
+    // What the preview shows; x-live-frame swaps it in without a blink.
+    previewHtml: '',
     activating: false,
 
     formsList: [],
@@ -116,6 +118,9 @@ export default function headerFooter() {
       first ? await this.select(first) : await this.startNew()
 
       this.$watch('draft', () => this.schedulePreview())
+      // The watch only sees changes from here on, so the part opened above
+      // is previewed now.
+      this.renderPreview()
       // A field added or retyped on the Fields tab gets its value slot.
       this.$watch('draft.fields', () => { if (this.draft) this.fillValues() })
       this.$nextTick(() => {
@@ -474,13 +479,10 @@ export default function headerFooter() {
           values: this.draft.values,
           settings: this.draft.settings,
         })
-        const frame = this.$refs.frame
-        if (!frame) return
-
         // A footer is at the bottom: open the preview there the first time.
         const scroll = this.draft.kind === 'footer' && !this._scrolledFor?.[this.draft.id] ? 99999 : this.previewScroll
         this._scrolledFor = { ...(this._scrolledFor ?? {}), [this.draft.id]: true }
-        frame.srcdoc = html.replace('<head>', `<head><script>window.__spScroll=${Math.round(scroll)}<\/script>`)
+        this.previewHtml = html.replace('<head>', `<head><script>window.__spScroll=${Math.round(scroll)}<\/script>`)
       } catch (err) {
         this.previewError = err.errors ? Object.values(err.errors)[0][0] : err.message
       } finally {

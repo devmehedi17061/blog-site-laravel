@@ -1,4 +1,4 @@
-import { cssValues, fillTokens, renderTemplate, typeMap } from './template.js'
+import { cssValues, fillTokens, renderTemplate, samplePosts, typeMap } from './template.js'
 import { contentStyleFrom, inlineStyleFrom, scopeCss, visibilityCss } from './style.js'
 
 /** The preview's band stands in for #section-{id} on the published page. */
@@ -13,6 +13,8 @@ const ROOT = '#preview-root'
 function siteStylesheets() {
   const design = window.__SITE_DESIGN__ ?? {}
   const links = [...document.querySelectorAll('link[rel="stylesheet"]')].map((link) => link.href)
+  // The public site's own stylesheets, which the panel does not load.
+  links.push(...(window.__SITE_STYLES__ ?? []))
   if (design.fonts) links.push(design.fonts)
 
   // Settings → Design last, so the site's colours, fonts and widths win.
@@ -36,8 +38,13 @@ export function previewDoc({ mode, html, css, fields, values, style, globals, fr
   const types = typeMap(fields ?? [])
   const look = { ...(frame ?? {}), ...Object.fromEntries(Object.entries(style ?? {}).filter(([, v]) => v !== '' && v !== null && v !== undefined)) }
 
+  // A section that lists the newest posts previews with stand-ins.
+  const lists = library && /\{\{#\s*latest_posts\s*\}\}/.test(String(html ?? ''))
+    ? { latest_posts: samplePosts(values ?? {}) }
+    : {}
+
   const body = library
-    ? renderTemplate(html, values ?? {}, types, '', globals ?? {})
+    ? renderTemplate(html, values ?? {}, types, '', { ...lists, ...(globals ?? {}) })
     : String(html ?? '')
 
   // Tokens work in CSS too, so a colour field can drive a rule.
@@ -60,7 +67,8 @@ export function previewDoc({ mode, html, css, fields, values, style, globals, fr
     + `<body class="site-body bg-bg text-ink"><main class="w-full"><section id="preview-root" class="site-section"${band}>`
     + `<div class="site-section-inner preview-content"${column}>${body}</div></section></main>`
     // The site's own script, so sliders and the like move in the preview too.
-    + (window.__SITE_SCRIPT__ ? `<script type="module" src="${String(window.__SITE_SCRIPT__).replace(/"/g, '&quot;')}"></script>` : '')
+    + [window.__SITE_SCRIPT__, ...(window.__SITE_SCRIPTS__ ?? [])].filter(Boolean)
+      .map((src) => `<script type="module" src="${String(src).replace(/"/g, '&quot;')}"></script>`).join('')
     + '</body></html>'
 }
 

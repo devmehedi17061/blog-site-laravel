@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'pages' && !$store.ui.editing">
-<div x-data="pages" x-init="init()" class="p-6">
+<div x-data="pages" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">

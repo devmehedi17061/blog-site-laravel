@@ -20,6 +20,10 @@ use Illuminate\Support\Collection;
  *                                      sits on instead of being retyped
  *   {{ _number }}, {{ _index }}        which item of a group this is, 1- and
  *                                      0-based, available inside the block
+ *   {{ _count }}                       how many items the group has
+ *   {{#latest_posts}} … {{/latest_posts}}
+ *                                      the newest published posts (LatestPosts),
+ *                                      built only when the template asks
  *
  * A field of the same name always wins, so adding one of these can never
  * change what an existing section renders.
@@ -45,13 +49,37 @@ class SectionRenderer
             return $template;
         }
 
+        $values = $section->values ?? [];
+
         return $this->renderBlock(
             $template,
-            $section->values ?? [],
+            $values,
             $this->typeMap($section->fieldDefinitions()),
             '',
-            $this->pageTokens($page)
+            $this->pageTokens($page) + $this->listTokens($template, $values)
         );
+    }
+
+    /**
+     * Lists the site supplies to a group of the same name. Only built when
+     * the template repeats one — each is a query.
+     *
+     * @return array<string, array<int, array<string, string>>>
+     */
+    private function listTokens(string $template, array $values): array
+    {
+        if (! preg_match('/\{\{#\s*latest_posts\s*\}\}/', $template)) {
+            return [];
+        }
+
+        // fallback_image, fallback_image_2, … take turns, in that order.
+        $fallbacks = Collection::make($values)
+            ->filter(fn ($value, $key) => preg_match('/^fallback_image(_\d+)?$/', (string) $key) && is_string($value) && $value !== '')
+            ->sortKeys(SORT_NATURAL)
+            ->values()
+            ->all();
+
+        return ['latest_posts' => LatestPosts::items((int) ($values['posts_count'] ?? 3), $fallbacks)];
     }
 
     /**
@@ -249,13 +277,15 @@ class SectionRenderer
             function (array $match) use ($scope, $types, $prefix, $globals) {
                 $key = $match[1];
                 $inner = $match[2];
-                $items = $scope[$key] ?? [];
+                // A field's items first; otherwise a list the site supplies.
+                $items = $scope[$key] ?? $globals[$key] ?? [];
 
                 if (! is_array($items)) {
                     return '';
                 }
 
                 $childPrefix = $prefix === '' ? $key : $prefix.'.'.$key;
+                $count = (string) count($items);
 
                 return Collection::make(array_values($items))
                     ->map(fn ($item, $index) => $this->renderBlock(
@@ -268,6 +298,7 @@ class SectionRenderer
                         array_merge($globals, [
                             '_index' => (string) $index,
                             '_number' => (string) ($index + 1),
+                            '_count' => $count,
                         ])
                     ))
                     ->implode('');
@@ -275,7 +306,10 @@ class SectionRenderer
             $template
         ) ?? '';
 
-        return $this->fill($withGroups, array_merge($globals, $this->values($scope, $types, $prefix)));
+        // A supplied list is only for a group; it has no text of its own.
+        $scalars = array_filter($globals, fn ($value) => ! is_array($value));
+
+        return $this->fill($withGroups, array_merge($scalars, $this->values($scope, $types, $prefix)));
     }
 
     private function fill(string $source, array $values): string

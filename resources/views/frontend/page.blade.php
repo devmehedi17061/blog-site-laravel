@@ -35,6 +35,10 @@
       'url' => url($page->path()),
     ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
   </script>
+  {{-- FAQ questions and the breadcrumb trail, for rich results. --}}
+  @foreach (\App\Support\PageSchema::for($page) as $schema)
+    <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+  @endforeach
   @include('frontend.partials.section-styles', ['sections' => $page->sections])
 @endpush
 

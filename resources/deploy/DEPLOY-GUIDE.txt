@@ -1,0 +1,121 @@
+CMS — cPanel-এ upload করার নিয়ম
+================================================
+
+এই zip-এ দুটো folder:
+
+  laravel/       পুরো app (code, vendor, storage) — web থেকে দেখা যায় না
+  public_html/   শুধু যা visitor দেখবে (index.php, build, images, install.php)
+
+
+১. Upload
+---------
+cPanel → File Manager → আপনার home folder (/home/USERNAME) খুলুন।
+zip upload করে সেখানেই Extract করুন। ফলাফল:
+
+  /home/USERNAME/laravel
+  /home/USERNAME/public_html
+
+(public_html-এ আগে থেকে কিছু থাকলে আগে ব্যাকআপ নিয়ে সরিয়ে দিন।)
+PHP version 8.2 বা তার বেশি দিন (cPanel → Select PHP Version / MultiPHP Manager)।
+
+
+২. Database
+-----------
+cPanel → MySQL Databases: একটা database আর একটা user বানান,
+user-কে database-এ যোগ করে ALL PRIVILEGES দিন।
+
+
+৩. .env
+-------
+File Manager-এ laravel/.env.production.example কপি করে নাম দিন  .env
+(laravel folder-এর ভেতরেই)। Edit করে পূরণ করুন:
+
+  APP_URL=https://আপনার-domain.com
+  DB_DATABASE=...   DB_USERNAME=...   DB_PASSWORD=...
+  INSTALL_TOKEN=যেকোনো-লম্বা-গোপন-লেখা     (যেমন site-7f3k29xq-setup)
+
+APP_KEY খালি রাখুন — installer নিজে বানাবে।
+APP_PUBLIC_PATH=../public_html যেমন আছে তেমনই রাখুন।
+(File Manager-এ .env না দেখালে: Settings → "Show Hidden Files" চালু করুন।)
+
+
+৪ক. Terminal ছাড়া install (সহজ পথ)
+----------------------------------
+Browser-এ খুলুন:   https://আপনার-domain.com/install.php
+
+• উপরে server check দেখাবে — সব ✔ সবুজ হতে হবে।
+• INSTALL_TOKEN (যা .env-এ দিয়েছেন), site name, admin email আর password দিয়ে Install চাপুন।
+• এটা নিজেই key বানাবে, database table বানাবে, admin account বানাবে,
+  database আর প্রথম admin বানাবে (SITE_PACK_INSTALL থাকলে site pack-এর page/header/footer/menu-ও) আর ছবির link (public_html/storage) বানাবে।
+• "Done" দেখালে:
+    ১) File Manager থেকে public_html/install.php DELETE করুন
+    ২) .env থেকে INSTALL_TOKEN লাইনটা মুছে দিন
+• তারপর https://আপনার-domain.com/admin — এ login করুন।
+
+(Terminal থাকলে ৪ক-এর বদলে:  cd ~/laravel  →  php artisan cms:install  (site pack থাকলে তার install command))
+
+
+৫. Cron (Terminal লাগে না)
+-------------------------
+cPanel → Cron Jobs → "Once Per Minute" বেছে Command-এ দিন:
+
+  /usr/local/bin/php /home/USERNAME/laravel/artisan schedule:run >> /dev/null 2>&1
+
+(USERNAME বদলে দিন। php-এর path আলাদা হলে cPanel-এর Cron পাতায় সেটা লেখা থাকে।)
+Cron না দিলেও site চলবে — শুধু schedule করা post নিজে থেকে publish হতে দেরি হতে পারে
+(admin খুললেই হয়ে যায়)।
+
+
+চালু live site UPDATE করা (আগে SQL import করা হয়েছে এমন site)
+------------------------------------------------------------
+এই zip-এ database.sql আর সব upload করা ছবি (laravel/storage/app/public) আছে।
+লোকালে যা দেখছেন, live-এ হুবহু তাই আসবে।
+
+১) Backup (যদি কিছু ভুল হয়):
+   • cPanel → phpMyAdmin → live database → Export → Go  (file রেখে দিন)
+   • File Manager থেকে laravel/.env download করে রাখুন
+
+২) Upload: zip টা home folder-এ (/home/USERNAME) upload করে Extract করুন।
+   "overwrite" জিজ্ঞেস করলে Yes। laravel/.env zip-এ নেই, তাই আপনার .env যেমন আছে থাকবে।
+
+৩) পুরোনো cache মুছুন: laravel/bootstrap/cache-এর ভেতরের .php ফাইলগুলো delete করুন
+   (folder টা রাখবেন)। আর laravel/storage/framework/views-এর ভেতরের সব ফাইল delete করুন।
+
+৪) Database: phpMyAdmin → বাঁ দিকে live database টা select করুন → Import →
+   database.sql (zip-এর সাথে home folder-এ এসেছে; আগে নিজের কম্পিউটারে download করে নিন) → Go।
+   • এটা site-এর সব table নতুন করে বসাবে (page, section, header/footer, menu, post, setting)।
+   • Contact form-এ visitor-দের পাঠানো message (form_submissions) মুছবে না।
+   • Import-এর পরে File Manager থেকে home folder-এর database.sql DELETE করুন।
+
+৫) .env-এ APP_KEY লোকালের .env-এর APP_KEY-এর সাথে একদম এক হতে হবে
+   (আগের বার বসিয়ে থাকলে আর কিছু করতে হবে না)। না মিললে admin-এর mail/SMTP password পড়া যাবে না।
+
+৬) Security: public_html/install.php আর public_html/fix-storage.php DELETE করুন।
+
+৭) Browser-এ site খুলে Ctrl+F5 দিন। Admin login লোকালের email/password দিয়ে।
+
+ছবি নিয়ে: ছবি laravel/storage/app/public-এ থাকে। Host symlink দিলে public_html/storage দিয়ে,
+না দিলেও site নিজেই /storage/... ঠিকঠাক দেখায় (আলাদা কিছু করতে হয় না)।
+
+সতর্কতা: import করলে live admin-এ সরাসরি করা কোনো পরিবর্তন (import-এর পরে) হারিয়ে যাবে —
+তাই পরিবর্তন লোকালে করে এভাবেই পাঠান, অথবা live-এই করুন, দুটো মিশাবেন না।
+
+
+পুরোনো content নিতে চাইলে (নতুন install-এর বদলে)
+-----------------------------------------------
+• লোকাল phpMyAdmin থেকে database Export → hosting-এর phpMyAdmin-এ Import।
+• লোকাল .env-এর APP_KEY-টা server-এর .env-এ বসান (নইলে save করা password/SMTP পড়া যাবে না)।
+• লোকাল storage/app/public-এর সব ফাইল upload করুন laravel/storage/app/public-এ।
+• তারপর install.php-তে Install চাপবেন না — শুধু ছবির link লাগবে; সেটার জন্য
+  install.php খুলে দেখুন "storage link" ঠিক আছে কিনা, না থাকলে host-কে বলুন।
+  (সতর্কতা: লোকাল database-এ আপনার test post, test user আর Gmail SMTP সেটিংও চলে যাবে।)
+
+
+সমস্যা হলে
+-----------
+• সাদা পাতা / 500 error: laravel/storage/logs/laravel.log দেখুন।
+  laravel/storage আর laravel/bootstrap/cache folder-এ permission 755 (দরকারে 775) দিন।
+• ছবি আসে না: public_html/storage link নেই। Host symlink বন্ধ রাখলে support-কে বলুন
+  "public_html/storage → laravel/storage/app/public symlink বানিয়ে দিন"।
+• .env বদলালে আর কিছু চালাতে হয় না (config cache করা নেই)।
+• লোকাল .env কখনো upload করবেন না — ওতে আপনার লোকাল password আছে।

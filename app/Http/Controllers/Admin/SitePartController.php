@@ -37,7 +37,7 @@ class SitePartController extends Controller
     {
         $this->allow($request, 'layout.create');
 
-        $data = $this->validated($request, true);
+        $data = $this->validated($request, true, new SitePart);
         $data['slug'] = Slug::unique(SitePart::class, $data['kind'].'-'.$data['name']);
         $data['user_id'] = $request->user()->id;
 
@@ -57,7 +57,7 @@ class SitePartController extends Controller
     {
         $this->allow($request, 'layout.update');
 
-        $part->update($this->validated($request, false));
+        $part->update($this->validated($request, false, $part));
 
         ActivityLog::record('Updated '.$part->kind, $part->name, $part);
 
@@ -106,7 +106,8 @@ class SitePartController extends Controller
 
     // ── helpers ────────────────────────────────────────────────────────────
 
-    private function validated(Request $request, bool $creating): array
+    /** $guarded: the part being saved (a new one when creating) — new code in it is Super Admin only. A preview passes none. */
+    private function validated(Request $request, bool $creating, ?SitePart $guarded = null): array
     {
         $data = $request->validate([
             'kind' => [$creating ? 'required' : 'prohibited', 'in:'.implode(',', SitePart::KINDS)],
@@ -120,6 +121,16 @@ class SitePartController extends Controller
             'settings.sticky' => ['nullable', 'boolean'],
             'settings.caret' => ['nullable', 'in:'.implode(',', SitePart::CARETS)],
         ]);
+
+        if ($guarded && ! $request->user()?->isSuperAdmin()) {
+            $added = \App\Support\ScriptGuard::added(
+                ($data['html'] ?? '').\App\Support\ScriptGuard::flatten($data['values'] ?? []),
+                (string) $guarded->html.\App\Support\ScriptGuard::flatten($guarded->values ?? [])
+            );
+            if ($added) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['html' => 'Only a Super Admin can add scripts, event handlers, embeds or Alpine code (found: '.\Illuminate\Support\Str::limit($added[0], 80).').']);
+            }
+        }
 
         $data['fields'] = FieldKeys::normalise($data['fields'] ?? []);
         $data['values'] = $data['values'] ?? [];

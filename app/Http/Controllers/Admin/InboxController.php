@@ -54,6 +54,28 @@ class InboxController extends Controller
         return FormSubmissionResource::make($submission->load(['form:id,name,slug', 'form.fields']));
     }
 
+    /**
+     * A file a visitor uploaded, as a download for someone allowed to read
+     * the inbox. Always an attachment and never sniffed, so a file that is
+     * not what it claims cannot run in the browser. Older uploads that were
+     * kept on the public disk are still found.
+     */
+    public function file(FormSubmission $submission, string $field): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorize('viewAny', Form::class);
+
+        $path = (string) (($submission->payload ?? [])[$field] ?? '');
+        abort_if($path === '' || str_contains($path, '..') || ! str_starts_with($path, 'form-uploads/'), 404);
+
+        $disk = collect(['local', 'public'])->first(fn ($d) => \Illuminate\Support\Facades\Storage::disk($d)->exists($path));
+        abort_unless($disk, 404);
+
+        return \Illuminate\Support\Facades\Storage::disk($disk)->download($path, basename($path), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+        ]);
+    }
+
     /** Read or unread. Nothing else about a submission can be changed. */
     public function update(Request $request, FormSubmission $submission): FormSubmissionResource
     {

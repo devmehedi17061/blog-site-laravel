@@ -66,7 +66,7 @@ class FormSubmissionResource extends JsonResource
                 'name' => $name,
                 'label' => $labels[$name] ?? $name,
                 'value' => is_array($value) ? implode(', ', $value) : (string) $value,
-                'url' => $isFile && filled($value) ? Storage::disk('public')->url($value) : null,
+                'url' => $isFile && filled($value) ? route('admin.api.inbox.file', [$this->resource, $name]) : null,
             ];
         }
 

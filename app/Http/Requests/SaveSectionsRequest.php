@@ -8,6 +8,23 @@ use Illuminate\Validation\Rule;
 
 class SaveSectionsRequest extends FormRequest
 {
+    /**
+     * A blank section's HTML, and a rich-text value, reach the page as they
+     * are: code in them runs for every visitor. New code is Super Admin only
+     * (ScriptGuard); what the page already holds may be saved back as it is.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $page = $this->route('page');
+        $sent = collect((array) $this->input('sections', []))
+            ->map(fn ($s) => ($s['html'] ?? '')."\n".\App\Support\ScriptGuard::flatten($s['values'] ?? []))->implode("\n");
+        $stored = $page instanceof \App\Models\Page
+            ? $page->sections()->get()->map(fn ($s) => $s->html."\n".\App\Support\ScriptGuard::flatten($s->values ?? []))->implode("\n")
+            : '';
+
+        \App\Support\ScriptGuard::guard($validator, $this->user(), 'sections', $sent, $stored);
+    }
+
     public function rules(): array
     {
         return [
@@ -18,8 +35,8 @@ class SaveSectionsRequest extends FormRequest
             'sections.*.template_id' => ['nullable', 'integer', 'exists:section_templates,id'],
 
             // Blank sections only.
-            'sections.*.html' => ['nullable', 'string', 'max:60000'],
-            'sections.*.css' => ['nullable', 'string', 'max:60000'],
+            'sections.*.html' => ['nullable', 'string', 'max:200000'],
+            'sections.*.css' => ['nullable', 'string', 'max:200000'],
 
             // Library sections only. The shape is the template's business, so
             // this just caps the size of what a page can store.

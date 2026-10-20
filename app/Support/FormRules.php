@@ -15,6 +15,9 @@ use Illuminate\Validation\Rule;
  */
 class FormRules
 {
+    /** What a visitor may upload through a form's file field. */
+    public const UPLOAD_TYPES = 'jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt';
+
     /** @return array<string, array<int, mixed>> */
     public static function for(Form $form): array
     {
@@ -50,7 +53,10 @@ class FormRules
             'number' => ['numeric'],
             'date' => ['date'],
             'textarea' => ['string', 'max:5000'],
-            'file' => ['file', 'max:5120'],
+            // Documents and pictures only — never anything a server could
+            // run (.php, .phtml, .html, .svg …). Both the real content type
+            // and the name the visitor gave it must be on the list.
+            'file' => ['file', 'max:5120', 'mimes:'.self::UPLOAD_TYPES, 'extensions:'.self::UPLOAD_TYPES],
             'select', 'radio' => ['string', Rule::in($field->choices())],
             // A lone checkbox is a yes/no; "required" means it must be ticked.
             'checkbox' => ['accepted'],

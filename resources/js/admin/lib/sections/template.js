@@ -80,7 +80,8 @@ export function typeMap(fields, prefix = '') {
  */
 export function renderTemplate(source, values, types, prefix = '', globals = {}) {
   const withGroups = String(source ?? '').replace(GROUP, (_, key, inner) => {
-    const items = values?.[key]
+    // A field's items first; otherwise a list the site supplies (latest_posts).
+    const items = values?.[key] ?? globals?.[key]
     if (!Array.isArray(items)) return ''
 
     const childPrefix = prefix ? `${prefix}.${key}` : key
@@ -92,13 +93,38 @@ export function renderTemplate(source, values, types, prefix = '', globals = {})
           item && typeof item === 'object' ? item : {},
           types,
           childPrefix,
-          { ...globals, _index: String(index), _number: String(index + 1) }
+          { ...globals, _index: String(index), _number: String(index + 1), _count: String(items.length) }
         )
       )
       .join('')
   })
 
-  return fillTokens(withGroups, { ...globals, ...escapedScope(values, types, prefix) })
+  // A supplied list is only for a group; it has no text of its own.
+  const scalars = Object.fromEntries(Object.entries(globals).filter(([, value]) => !Array.isArray(value)))
+
+  return fillTokens(withGroups, { ...scalars, ...escapedScope(values, types, prefix) })
+}
+
+/**
+ * Stands in for the newest posts in the builders' previews — the real ones
+ * are read on the server when the page renders (App\Support\LatestPosts).
+ */
+export function samplePosts(values = {}) {
+  const n = Math.max(1, Math.min(12, parseInt(values?.posts_count, 10) || 3))
+  // fallback_image, fallback_image_2, … take turns, as on the server.
+  const fallbacks = Object.keys(values ?? {})
+    .filter((key) => /^fallback_image(_\d+)?$/.test(key) && typeof values[key] === 'string' && values[key] !== '')
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    .map((key) => values[key])
+
+  return Array.from({ length: n }, (_, i) => ({
+    title: `Your newest post ${i + 1} shows here`,
+    url: '#',
+    date: 'Today',
+    category: 'Category',
+    excerpt: 'The first lines of the post.',
+    image: fallbacks.length ? fallbacks[i % fallbacks.length] : '',
+  }))
 }
 
 export function fillTokens(source, values) {

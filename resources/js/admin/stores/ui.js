@@ -39,7 +39,10 @@ const NAV_GROUPS = [
   },
   {
     label: 'System',
-    items: [{ key: 'settings', label: 'Settings', mono: 'ST', permission: 'settings.view' }],
+    items: [
+      { key: 'settings', label: 'Settings', mono: 'ST', permission: 'settings.view' },
+      { key: 'updates', label: 'Updates', mono: 'UP', permission: 'settings.view' },
+    ],
   },
 ]
 
@@ -51,7 +54,7 @@ const TITLES = {
 
 // Screens not in this list land in later parts; the shell shows a
 // placeholder for them rather than a dead link.
-const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account']
+const BUILT = ['dashboard', 'layout', 'trash', 'posts', 'categories', 'media', 'pages', 'sections', 'forms', 'inbox', 'menu', 'users', 'roles', 'settings', 'security', 'account', 'updates']
 
 export default {
   screen: 'dashboard',

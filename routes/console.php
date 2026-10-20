@@ -218,6 +218,101 @@ Artisan::command('trash:purge', function () {
 Schedule::command('trash:purge')->daily();
 
 /*
+| A gzipped SQL copy of the whole database in storage/app/private/backups
+| (App\Support\DatabaseBackup), the newest 14 kept. Daily through the
+| scheduler; on hosts with no cron the admin panel takes one when the last
+| is over a day old.
+*/
+Artisan::command('backup:database', function () {
+    try {
+        $path = \App\Support\DatabaseBackup::run();
+    } catch (\Throwable $e) {
+        $this->error('Backup failed: '.$e->getMessage());
+
+        return 1;
+    }
+    $this->info('Backup written: '.$path.' ('.round(filesize($path) / 1024).' KB).');
+
+    return 0;
+})->purpose('Back up the database to storage/app/private/backups');
+
+Schedule::command('backup:database')->dailyAt('02:30');
+
+/*
+| The site's security settings checked against the checklist
+| (App\Support\SecurityAudit). Exits non-zero when something fails, so a
+| deploy script can stop on it; the daily run writes failures to the log.
+*/
+Artisan::command('security:check', function () {
+    $rows = \App\Support\SecurityAudit::run();
+    $icons = ['ok' => '<fg=green>✔</>', 'warn' => '<fg=yellow>!</>', 'fail' => '<fg=red>✘</>'];
+    foreach ($rows as [$status, $what, $detail]) {
+        $this->line(' '.$icons[$status].' '.$what.($detail !== '' ? '  <fg=gray>— '.$detail.'</>' : ''));
+    }
+    $count = collect($rows)->countBy(0);
+    $this->newLine();
+    $this->info(($count['ok'] ?? 0).' ok, '.($count['warn'] ?? 0).' to look at, '.($count['fail'] ?? 0).' failing.');
+
+    foreach ($rows as [$status, $what, $detail]) {
+        if ($status === 'fail') {
+            \Illuminate\Support\Facades\Log::warning('Security check failed: '.$what.($detail !== '' ? ' — '.$detail : ''));
+        }
+    }
+
+    return ($count['fail'] ?? 0) > 0 ? 1 : 0;
+})->purpose('Check the site\'s security settings');
+
+Schedule::command('security:check')->dailyAt('03:00');
+
+/*
+| The core version (App\Support\Updater, GitHub Releases). `cms:update`
+| installs the newest release; --check only says whether there is one;
+| --zip= installs a release zip already on disk. Daily, the scheduler
+| installs by itself what Settings → Updates allows (security, or all).
+*/
+Artisan::command('cms:update {--check : Only say whether a newer version exists} {--zip= : Install this release zip instead of downloading}', function () {
+    $updater = app(\App\Support\Updater::class);
+    $this->line('This site runs version '.\App\Support\Updater::current().'.');
+
+    if (! $this->option('zip')) {
+        try {
+            $latest = $updater->latest(true);
+        } catch (\Throwable $e) {
+            $this->error('Could not ask GitHub: '.$e->getMessage());
+
+            return 1;
+        }
+        if (! $updater->available($latest)) {
+            $this->info('It is the newest version.');
+
+            return 0;
+        }
+        $this->info('Version '.$latest['version'].' is available'.($latest['security'] ? ' (security update)' : '').'.');
+        if ($this->option('check')) {
+            return 0;
+        }
+    }
+
+    try {
+        $updater->install($this->option('zip') ?: null, fn (string $line) => $this->line('  '.$line));
+    } catch (\Throwable $e) {
+        $this->error('The update did not finish (the previous code was put back).');
+
+        return 1;
+    }
+
+    return 0;
+})->purpose('Update the CMS core from GitHub Releases');
+
+Schedule::call(function () {
+    try {
+        app(\App\Support\Updater::class)->autoInstall();
+    } catch (\Throwable $e) {
+        report($e);
+    }
+})->name('cms-auto-update')->dailyAt('04:00')->withoutOverlapping();
+
+/*
 | Scheduled pages and posts are already public once their date comes; this
 | only updates their status so the admin lists say "Published".
 */

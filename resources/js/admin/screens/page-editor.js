@@ -39,6 +39,7 @@ function blankPage() {
 
 export default function pageEditor() {
   return extend(extend(extend(pageSections(), seoPanel()), revisionHistory('pages')), {
+    slugIsPath: true,
     draft: blankPage(),
     options: { statuses: [], templates: [], authors: [], layouts: [] },
     homeSaving: false,

@@ -95,7 +95,9 @@ class FormSubmissionController extends Controller
                 $file = $request->file('fields.'.$field->name);
 
                 $payload[$field->name] = $file
-                    ? $file->store('form-uploads/'.$form->slug, 'public')
+                    // The private disk: a visitor's file is never served by the
+                    // web server, only handed to a signed-in admin (InboxController::file).
+                    ? $file->store('form-uploads/'.$form->slug, 'local')
                     : null;
 
                 continue;

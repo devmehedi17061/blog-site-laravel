@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'roles'">
-<div x-data="roles" x-init="init()" class="p-6">
+<div x-data="roles" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">

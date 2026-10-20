@@ -386,11 +386,17 @@ export default function sectionLibrary() {
         { key: field.key, detail: field.type === 'group' ? 'repeat' : (field.label || field.type), group: field.type === 'group' },
         ...(field.type === 'group' ? (field.fields ?? []).filter((s) => s.key).map((s) => ({ key: s.key, detail: `in ${field.key}` })) : []),
       ])
-      const extra = [...this.pageTokens, '_number', '_index']
+      const extra = [...this.pageTokens, '_number', '_index', '_count']
         .filter((key) => !fields.some((f) => f.key === key))
         .map((key) => ({ key, detail: key.startsWith('_') ? 'in a group' : 'from the page' }))
+      const lists = fields.some((f) => f.key === 'latest_posts')
+        ? []
+        : [
+            { key: 'latest_posts', detail: 'newest posts', group: true },
+            ...this.postTokens.map((key) => ({ key, detail: 'in latest_posts' })),
+          ]
 
-      return [...fields, ...extra]
+      return [...fields, ...extra, ...lists]
     },
 
     /** A token button: into the HTML where the cursor is (copied if the editor is not there). */
@@ -412,11 +418,18 @@ export default function sectionLibrary() {
      */
     pageTokens: ['page_title', 'page_url'],
 
+    /**
+     * {{#latest_posts}} repeats the newest published posts; these are each
+     * post's tokens inside it (App\Support\LatestPosts). A posts_count field
+     * sets how many, a fallback_image field the picture for a post with none.
+     */
+    postTokens: ['title', 'url', 'date', 'category', 'excerpt', 'image'],
+
     /** Tokens used in the HTML that no field backs. */
     get unknownTokens() {
       if (!this.draft) return []
 
-      const known = new Set([...this.pageTokens, '_index', '_number'])
+      const known = new Set([...this.pageTokens, '_index', '_number', '_count', 'latest_posts', ...this.postTokens])
 
       for (const field of this.fields) {
         known.add(field.key)

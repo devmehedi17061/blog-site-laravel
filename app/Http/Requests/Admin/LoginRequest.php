@@ -39,6 +39,21 @@ class LoginRequest extends FormRequest
         $key = $this->throttleKey();
         $max = max(1, (int) $security->get('max_attempts'));
 
+        // Two wider limits on top of the per email + IP one: one address
+        // guessing at many accounts, and many addresses (a botnet) guessing
+        // at one account. Both pause for an hour.
+        $ipKey = 'login-ip:'.$this->ip();
+        $accountKey = 'login-account:'.sha1(Str::lower((string) $this->input('email')));
+        foreach ([[$ipKey, self::IP_LIMIT], [$accountKey, self::ACCOUNT_LIMIT]] as [$wide, $limit]) {
+            if (RateLimiter::tooManyAttempts($wide, $limit)) {
+                $minutes = (int) ceil(RateLimiter::availableIn($wide) / 60);
+
+                throw ValidationException::withMessages([
+                    'email' => ["Too many failed sign-ins. Try again in {$minutes} minute".($minutes === 1 ? '' : 's').'.'],
+                ]);
+            }
+        }
+
         if (RateLimiter::tooManyAttempts($key, $max)) {
             $minutes = (int) ceil(RateLimiter::availableIn($key) / 60);
 
@@ -56,7 +71,15 @@ class LoginRequest extends FormRequest
 
         if (! $user || ! Hash::check((string) $this->input('password'), $user->password)) {
             RateLimiter::hit($key, max(1, (int) $security->get('lockout_minutes')) * 60);
-            $this->logFailure($user, RateLimiter::tooManyAttempts($key, $max));
+            RateLimiter::hit($ipKey, 3600);
+            RateLimiter::hit($accountKey, 3600);
+            $locked = RateLimiter::tooManyAttempts($key, $max);
+            $this->logFailure($user, $locked);
+
+            // The account's owner hears about it the moment it locks.
+            if ($user && ($locked && RateLimiter::attempts($key) === $max || RateLimiter::attempts($accountKey) === self::ACCOUNT_LIMIT)) {
+                $this->alert($user);
+            }
 
             throw ValidationException::withMessages([
                 'email' => ['These credentials do not match our records.'],
@@ -70,8 +93,31 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($key);
+        RateLimiter::clear($accountKey);
 
         return $user;
+    }
+
+    /** Failed sign-ins an hour from one IP address, whatever the account. */
+    public const IP_LIMIT = 20;
+
+    /** Failed sign-ins an hour at one account, from anywhere. */
+    public const ACCOUNT_LIMIT = 30;
+
+    /** Tells the account's owner that someone keeps guessing its password. */
+    private function alert(User $user): void
+    {
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "Hi {$user->name},\n\nSomeone has entered the wrong password for your ".config('app.name')." admin account several times "
+                ."(last from IP {$this->ip()}), so signing in to it is paused for a while.\n\n"
+                ."If this was you, wait and try again, or use \"Forgot your password?\" on the sign-in page.\n"
+                ."If it was not you, nothing has been let in — but consider switching on two-factor sign-in under My account.\n",
+                fn ($m) => $m->to($user->email)->subject('Sign-in attempts on your '.config('app.name').' account')
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public function throttleKey(): string

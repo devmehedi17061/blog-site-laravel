@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'pages' && $store.ui.editing">
-<div x-data="pageEditor" x-init="init()">
+<div x-data="pageEditor">
 
   <div class="editor-bar">
     <button type="button" class="btn btn-ghost btn-sm" @click="backToList()">← Pages</button>

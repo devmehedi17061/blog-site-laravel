@@ -1,0 +1,18 @@
+# Only public/ is meant to face the web. If this whole folder ever ends up
+# inside a web root (a misplaced upload to public_html), nothing outside
+# public/ — .env, vendor/, storage/ with its backups, the code — is served.
+# public/ has its own .htaccess, so requests there are not affected.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?!public/) - [F,L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    <FilesMatch ".*">
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+    </FilesMatch>
+</IfModule>

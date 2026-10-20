@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'layout'">
-<div x-data="headerFooter" x-init="init()" class="p-4 sm:p-6">
+<div x-data="headerFooter" class="p-4 sm:p-6">
 
   <div class="page-head">
     <div class="page-head-text">
@@ -42,7 +42,7 @@
       <span class="hfb-stage-note ml-auto" x-show="!previewing && !previewError">Live preview · unsaved changes included</span>
     </div>
     <div class="hfb-frame-wrap">
-      <iframe x-ref="frame" class="hfb-frame" :style="frameStyle" sandbox="allow-scripts" title="Preview"></iframe>
+      <div class="hfb-frame" :style="frameStyle" x-live-frame.0="previewHtml" data-sandbox="allow-scripts" data-title="Preview"></div>
     </div>
   </div>
 

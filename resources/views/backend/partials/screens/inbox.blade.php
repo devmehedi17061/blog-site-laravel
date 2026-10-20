@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'inbox'">
-<div x-data="inbox" x-init="init()" class="p-6">
+<div x-data="inbox" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">

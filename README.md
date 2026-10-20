@@ -467,17 +467,23 @@ comes back as a legal 2.
 Moving a row takes its whole branch with it. Dragging *Services* moves its
 sub-items too, which is the only behaviour that is not surprising.
 
-### Three levels
+### Four levels
 
 | Level | Renders as |
 | --- | --- |
 | 1 | the top bar |
 | 2 | a dropdown under its parent |
 | 3 | a flyout beside the dropdown |
+| 4 | items grouped under a level-3 heading |
+
+An item whose link is `#` is a **heading**, not a link. Level-3 headings with
+their own items turn a flyout into a titled, multi-column panel. A flyout that would run off the screen opens to
+the left, or in one column, instead (`site-parts/script`).
 
 No JavaScript on the public side: sub-menus open on `:hover` **and**
 `:focus-within`, so someone tabbing through reaches the deeper levels the same
-way a mouse does. Under 860px they stack instead, because a phone has no hover.
+way a mouse does. A phone has no hover, so there the header decides — a ☰ menu
+can slide each sub-menu in as its own screen, with a Back row.
 
 The footer prints one row, so anything nested under a footer item is kept but
 not shown there.

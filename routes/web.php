@@ -4,6 +4,7 @@ use App\Http\Controllers\Site\BlogController;
 use App\Http\Controllers\Site\FormSubmissionController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\PageController;
+use App\Http\Controllers\Site\PublicStorageController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,13 @@ Route::middleware(['site.language', 'site.open'])->group(function () {
 Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/feed', [SitemapController::class, 'feed'])->middleware('site.language')->name('feed');
+
+// Uploaded images when public/storage (the storage:link symlink) is missing —
+// hosts that forbid symlinks. With the link in place the web server serves
+// the file directly and this route is never reached.
+Route::get('/storage/{path}', PublicStorageController::class)
+    ->where('path', '.*')
+    ->name('storage.fallback');
 
 require __DIR__.'/admin.php';
 
