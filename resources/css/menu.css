@@ -65,6 +65,8 @@
   /* The second level drops below its parent; the third flies out sideways. */
   .site-menu-top > .site-menu-panel { top: 100%; left: 0; }
   .site-menu-panel .site-menu-panel { top: -5px; left: 100%; }
+  /* No room on the right (site-parts/script measures it): open leftwards. */
+  .site-menu-panel .site-menu-node.flip > .site-menu-panel { left: auto; right: 100%; }
 
   .site-menu-node:hover > .site-menu-panel,
   .site-menu-node:focus-within > .site-menu-panel { display: block; }
@@ -83,6 +85,14 @@
 
   .site-menu-text { flex: 1; min-width: 0; }
   .site-menu-more { flex: none; font-size: 13px; color: var(--color-neutral-500); }
+
+  /* The touch-screen opener for a sub-menu (site-parts/token). A header
+     shows it in its folded ☰ menu; everywhere else hover does the job. */
+  .site-menu-expand { display: none; }
+  /* The Back row a folded menu shows at the top of a sub-menu screen. */
+  .site-menu-head { display: none; }
+  /* A menu item linked to "#" is a heading, not a link. */
+  .site-menu-link:not([href]) { cursor: default; }
 
   /* How the menu folds on a phone is up to each header's own CSS (Builders
      → Header & footer); the starters stack it inside their ☰ panel. */

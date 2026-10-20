@@ -48,5 +48,10 @@ class UpdatePostRequest extends FormRequest
     public function withValidator(\Illuminate\Validation\Validator $validator): void
     {
         \App\Support\CustomCode::guard($validator, $this, $this->route('post'));
+
+        // …and so does a script in the body: new ones are Super Admin only.
+        if ($this->has('body')) {
+            \App\Support\ScriptGuard::guard($validator, $this->user(), 'body', (string) $this->input('body'), (string) $this->route('post')?->body);
+        }
     }
 }

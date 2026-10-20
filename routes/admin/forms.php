@@ -23,5 +23,6 @@ Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
 Route::post('/inbox/bulk', [InboxController::class, 'bulk'])->name('inbox.bulk');
 Route::post('/inbox/read-all', [InboxController::class, 'readAll'])->name('inbox.read-all');
 Route::get('/inbox/{submission}', [InboxController::class, 'show'])->name('inbox.show');
+Route::get('/inbox/{submission}/file/{field}', [InboxController::class, 'file'])->name('inbox.file');
 Route::put('/inbox/{submission}', [InboxController::class, 'update'])->name('inbox.update');
 Route::delete('/inbox/{submission}', [InboxController::class, 'destroy'])->name('inbox.destroy');

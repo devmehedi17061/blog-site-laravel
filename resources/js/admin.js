@@ -25,11 +25,15 @@ import security from './admin/screens/security.js'
 import account from './admin/screens/account.js'
 import trash from './admin/screens/trash.js'
 import headerFooter from './admin/screens/header-footer.js'
+import updates from './admin/screens/updates.js'
 import { fieldEditor } from './admin/lib/sections/fieldEditor.js'
 import { codeEditor } from './admin/lib/codeEditor.js'
+import { liveFrame } from './admin/lib/liveFrame.js'
 
 // x-code: the HTML and CSS boxes become code editors (lib/codeEditor.js).
 Alpine.plugin(codeEditor)
+// x-live-frame: previews that update without blinking (lib/liveFrame.js).
+Alpine.plugin(liveFrame)
 
 Alpine.store('auth', authStore)
 Alpine.store('ui', uiStore)
@@ -56,6 +60,7 @@ Alpine.data('security', security)
 Alpine.data('account', account)
 Alpine.data('trash', trash)
 Alpine.data('headerFooter', headerFooter)
+Alpine.data('updates', updates)
 
 // Not a screen: one rich text field, mounted wherever a section has one.
 Alpine.data('fieldEditor', fieldEditor)

@@ -70,6 +70,16 @@ class ImageVariants
                 return false;
             }
 
+            // An 8-bit (palette) PNG — common for logos and compressed PNGs —
+            // cannot be written as WebP: GD stops with a fatal error that no
+            // try/catch can catch. Turn it into full colour first, keeping
+            // any transparency.
+            if (! imageistruecolor($source)) {
+                imagepalettetotruecolor($source);
+                imagealphablending($source, false);
+                imagesavealpha($source, true);
+            }
+
             self::removeFiles($media);
 
             $variants = [];
@@ -87,8 +97,12 @@ class ImageVariants
                 $path = "{$base}-{$target}.webp";
 
                 ob_start();
-                imagewebp($copy, null, self::QUALITY);
-                $disk->put($path, (string) ob_get_clean());
+                try {
+                    imagewebp($copy, null, self::QUALITY);
+                } finally {
+                    $webp = (string) ob_get_clean();
+                }
+                $disk->put($path, $webp);
 
                 if ($copy !== $source) {
                     imagedestroy($copy);

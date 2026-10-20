@@ -20,6 +20,14 @@ class StoreSectionTemplateRequest extends FormRequest
         return (bool) $this->user()?->hasPermission($permission);
     }
 
+    /** New code in a library section's markup is Super Admin only (ScriptGuard). */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $template = $this->route('template');
+        \App\Support\ScriptGuard::guard($validator, $this->user(), 'html', (string) $this->input('html'),
+            $template instanceof \App\Models\SectionTemplate ? (string) $template->html : '');
+    }
+
     public function rules(): array
     {
         $id = $this->route('template')?->id;
@@ -27,8 +35,8 @@ class StoreSectionTemplateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120', Rule::unique('section_templates', 'name')->ignore($id)],
             'description' => ['nullable', 'string', 'max:255'],
-            'html' => ['nullable', 'string', 'max:60000'],
-            'css' => ['nullable', 'string', 'max:60000'],
+            'html' => ['nullable', 'string', 'max:200000'],
+            'css' => ['nullable', 'string', 'max:200000'],
 
             'fields' => ['nullable', 'array', 'max:40'],
             'fields.*.key' => ['required', 'string', 'max:60'],

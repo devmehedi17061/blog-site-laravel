@@ -46,5 +46,8 @@ class StorePostRequest extends FormRequest
     public function withValidator(\Illuminate\Validation\Validator $validator): void
     {
         \App\Support\CustomCode::guard($validator, $this, null);
+
+        // …and so does a script in the body: Super Admin only.
+        \App\Support\ScriptGuard::guard($validator, $this->user(), 'body', (string) $this->input('body'), '');
     }
 }

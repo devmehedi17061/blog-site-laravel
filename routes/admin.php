@@ -25,6 +25,16 @@ Route::prefix('admin')->name('admin.')->middleware('admin.ip')->group(function (
             ->middleware('throttle:6,1')
             ->name('login.store');
 
+        // "Forgot your password?": a link by email, then a new password.
+        Route::get('/forgot-password', [\App\Http\Controllers\Admin\PasswordResetController::class, 'request'])->name('password.request');
+        Route::post('/forgot-password', [\App\Http\Controllers\Admin\PasswordResetController::class, 'send'])
+            ->middleware('throttle:3,1')
+            ->name('password.email');
+        Route::get('/reset-password/{token}', [\App\Http\Controllers\Admin\PasswordResetController::class, 'edit'])->name('password.reset');
+        Route::post('/reset-password', [\App\Http\Controllers\Admin\PasswordResetController::class, 'update'])
+            ->middleware('throttle:6,1')
+            ->name('password.update');
+
         // Step two, for accounts with two-factor on.
         Route::get('/two-factor', [TwoFactorChallengeController::class, 'show'])->name('two-factor');
         Route::post('/two-factor', [TwoFactorChallengeController::class, 'store'])
@@ -60,6 +70,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.ip')->group(function (
             require __DIR__.'/admin/roles.php';
             require __DIR__.'/admin/settings.php';
             require __DIR__.'/admin/security.php';
+            require __DIR__.'/admin/updates.php';
         });
     });
 });

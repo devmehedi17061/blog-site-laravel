@@ -1,0 +1,30 @@
+# Uploaded files (served at /storage through public/storage). Nothing here
+# may ever run as code, whatever its name — only be handed out as a file.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .pl .py .cgi .sh .shtml
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht
+Options -ExecCGI -Indexes
+
+<FilesMatch "(?i)\.(php\d?|phtml|phar|pht|pl|py|cgi|sh|shtml|asp|aspx|jsp|htaccess|htpasswd|ini|env)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    # Opened on its own, a file (an SVG above all) may not run any script.
+    Header set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self'; sandbox"
+</IfModule>

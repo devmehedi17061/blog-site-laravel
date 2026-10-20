@@ -56,6 +56,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Folder
+    |--------------------------------------------------------------------------
+    |
+    | Where the web-facing folder is, when it is not the "public" folder
+    | beside the app — on shared hosting it is usually public_html, next to
+    | the app's own folder: APP_PUBLIC_PATH=../public_html. A relative path
+    | is read from the app's folder. Blank means the usual "public".
+    |
+    */
+
+    'public_path' => env('APP_PUBLIC_PATH'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

@@ -9,6 +9,10 @@
     window.__ADMIN__ = @json($panel);
     // The public site's script (sliders …), for the section previews.
     window.__SITE_SCRIPT__ = @json(\Illuminate\Support\Facades\Vite::asset('resources/js/site.js'));
+    // …and this site's pack (its own look and behaviour) on top of the
+    // panel's stylesheet, so previews look like the published page.
+    window.__SITE_STYLES__ = @json(\App\Support\SitePack::assetUrls()['css']);
+    window.__SITE_SCRIPTS__ = @json(\App\Support\SitePack::assetUrls()['js']);
     // Settings → Design, for the section previews to look like the site.
     window.__SITE_DESIGN__ = @json(['css' => app(\App\Support\Design::class)->css(), 'fonts' => app(\App\Support\Design::class)->fontsUrl()]);
   </script>
@@ -38,6 +42,7 @@
         @include('backend.partials.screens.roles')
         @include('backend.partials.screens.settings')
         @include('backend.partials.screens.security')
+        @include('backend.partials.screens.updates')
         @include('backend.partials.screens.account')
         @include('backend.partials.screens.placeholder')
       </main>

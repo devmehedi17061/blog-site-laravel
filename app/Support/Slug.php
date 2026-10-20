@@ -21,7 +21,8 @@ class Slug
         string $column = 'slug',
         string $prefix = ''
     ): string {
-        $base = Str::slug($value) ?: Str::random(8);
+        // Only pages (stored with a leading slash) can be nested.
+        $base = ($prefix === '/' ? self::path($value) : Str::slug($value)) ?: Str::random(8);
         $slug = $prefix.$base;
         $suffix = 1;
 
@@ -31,6 +32,16 @@ class Slug
         }
 
         return $slug;
+    }
+
+    /**
+     * A slug that may be a path: each part between slashes is made a slug of
+     * its own and the slashes are kept, so a page at services/sap/training
+     * stays nested. Text with no slash comes out exactly as Str::slug makes it.
+     */
+    public static function path(string $value): string
+    {
+        return implode('/', array_filter(array_map(fn ($part) => Str::slug($part), explode('/', $value)), fn ($p) => $p !== ''));
     }
 
     private static function taken(string $modelClass, string $column, string $slug, ?int $ignoreId): bool

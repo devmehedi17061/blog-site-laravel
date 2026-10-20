@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'users'">
-<div x-data="users" x-init="init()" class="p-6">
+<div x-data="users" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">

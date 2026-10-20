@@ -25,3 +25,26 @@ Thumbs.db
 
 # Two-factor recovery codes saved from the account screen: never commit them.
 recovery-codes*.txt
+/deploy
+
+# ── Never in the core repository ──────────────────────────────────────────
+# Each site's own pack (sites/<name>/) lives with that site; only the
+# README explaining packs is part of the core.
+/sites/*
+!/sites/README.md
+/public/site-build
+/public/site-hot
+# Release builds and the file list a release leaves on a site.
+/build-release
+/.cms-files
+# Database dumps and archives lying in the project root (a dump holds
+# password hashes and mail passwords).
+/*.sql
+/*.sql.gz
+/*.zip
+# Old design sources and specs of one site.
+/design
+/SRS
+/backend
+# One site's images (Data ETL); they stay on that site.
+/public/images/nmc

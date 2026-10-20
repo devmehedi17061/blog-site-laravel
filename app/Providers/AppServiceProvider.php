@@ -17,6 +17,20 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Shared hosting keeps the public files in public_html, apart from
+        // the app (config app.public_path). Set here rather than only in
+        // index.php so artisan agrees: storage:link, the Vite manifest.
+        if (filled($public = config('app.public_path'))) {
+            $path = str_starts_with($public, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $public)
+                ? $public
+                : base_path($public);
+            $this->app->usePublicPath(realpath($path) ?: $path);
+
+            // config/filesystems.php was read before this, with the old
+            // public folder; storage:link has to make /storage in this one.
+            config(['filesystems.links' => [public_path('storage') => storage_path('app/public')]]);
+        }
+
         // Shared for the whole request: a page can hold the same form in more
         // than one section, and the renderer only builds each one once.
         $this->app->singleton(FormRenderer::class);

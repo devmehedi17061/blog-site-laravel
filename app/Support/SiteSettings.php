@@ -168,6 +168,13 @@ class SiteSettings
             'mail.smtp_security' => 'tls',
             'mail.smtp_username' => '',
             'mail.smtp_password' => '',
+
+            // ── Updates (App\Support\Updater) ─────────────────────────────
+            // none: only tell · security: install security releases by itself
+            // · all: install every release by itself.
+            'updates.auto' => 'none',
+            // GitHub token for a private repository (read-only is enough).
+            'updates.token' => '',
         ];
     }
 
@@ -179,6 +186,7 @@ class SiteSettings
         'mail.smtp_password',
         'spam.turnstile_secret',
         'spam.recaptcha_secret',
+        'updates.token',
     ];
 
     // ── reading ────────────────────────────────────────────────────────────

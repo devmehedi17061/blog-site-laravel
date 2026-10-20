@@ -17,6 +17,8 @@ export function seoPanel() {
     // What the server will make of the slug and of the focus keyword.
     serverSlug: '',
     keywordSlug: '',
+    // Pages set this: their slug may be nested (services/sap/training).
+    slugIsPath: false,
 
     initSeo() {
       const refreshSlug = debounce(() => this.fetchSlug('serverSlug', this.draft.slug || this.draft.title), 350)
@@ -38,7 +40,8 @@ export function seoPanel() {
       }
 
       try {
-        const result = await api.get(`/slug?text=${encodeURIComponent(value)}`)
+        const path = target === 'serverSlug' && this.slugIsPath ? '&path=1' : ''
+        const result = await api.get(`/slug?text=${encodeURIComponent(value)}${path}`)
         this[target] = result.slug
       } catch {
         /* the checks fall back to their own guess */

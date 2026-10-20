@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* A site pack (sites/<name>/) has its own build: npm run build:site. */
+@source not "../../sites";
 
 @import "./tokens.css";
 @import "./base.css";

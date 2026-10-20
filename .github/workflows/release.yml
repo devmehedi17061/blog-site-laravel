@@ -1,0 +1,54 @@
+# Builds a core release for the in-panel updater on every version tag.
+#
+#   git tag v1.2.0 && git push origin v1.2.0
+#
+# The release gets cms-v1.2.0.zip (the core with vendor/ and public/build/,
+# ready to run — no composer or npm needed on the server) and its .sha256.
+# Every site then sees it under Settings → Updates. Put "[security]" in the
+# tag's release title or notes to let sites set to "security updates only"
+# install it by themselves.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, zip, gd, pdo_mysql, fileinfo, openssl
+          tools: composer:v2
+          coverage: none
+
+      - name: PHP packages (no dev)
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package
+        run: php resources/deploy/release-zip.php "${GITHUB_REF_NAME}" build-release
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build-release/cms-${{ github.ref_name }}.zip
+            build-release/cms-${{ github.ref_name }}.zip.sha256
+          generate_release_notes: true

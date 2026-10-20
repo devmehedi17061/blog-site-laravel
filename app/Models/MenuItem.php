@@ -19,8 +19,20 @@ class MenuItem extends Model
 
     public const TARGETS = ['_self', '_blank'];
 
-    /** Depth is 0-based, so 2 means three levels: item → sub → sub-sub. */
-    public const MAX_DEPTH = 2;
+    /**
+     * Depth is 0-based, so 3 means four levels: item → sub → sub-sub → one
+     * more — room for a group heading (a link of "#") inside a sub-menu,
+     * e.g. Services → SAP Solution → Cloud & Platform → Cloud ERP.
+     */
+    public const MAX_DEPTH = 3;
+
+    /** The address to link to; "#" (or nothing) makes the item a heading. */
+    public function href(): ?string
+    {
+        $url = trim((string) $this->url);
+
+        return $url === '' || $url === '#' ? null : $url;
+    }
 
     protected $fillable = [
         'location', 'parent_id', 'label', 'icon', 'url',

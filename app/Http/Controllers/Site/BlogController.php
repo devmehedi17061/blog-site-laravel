@@ -74,6 +74,8 @@ class BlogController extends Controller
             'posts' => $posts,
             'children' => $category->children()->withCount('posts')->get(),
             'ancestors' => $category->ancestors(),
+            // The same pills as the blog index, this one highlighted.
+            'categories' => Category::flat(),
         ]);
     }
 }

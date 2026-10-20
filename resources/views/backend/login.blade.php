@@ -23,6 +23,10 @@
           <p class="text-[13px] text-neutral-600">Use your admin account to continue.</p>
         </div>
 
+        @if (session('status'))
+          <div class="alert" role="status">{{ session('status') }}</div>
+        @endif
+
         @if ($errors->any())
           <div class="alert">{{ $errors->first() }}</div>
         @endif
@@ -31,7 +35,7 @@
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" class="input @error('email') input-invalid @enderror"
                  autocomplete="username" required autofocus
-                 value="{{ old('email') }}" placeholder="arif@example.com">
+                 value="{{ old('email') }}" placeholder="you@example.com">
         </div>
 
         {{-- The eye shows what was typed, to catch a typo before a wrong
@@ -67,14 +71,9 @@
 
         <button type="submit" class="btn btn-primary btn-lg w-full">Sign in</button>
 
-        {{-- A development convenience only: a live sign-in page must never
-             print a working password. --}}
-        @if (app()->environment('local'))
-          <p class="border-t border-line pt-4 text-[11px] leading-relaxed text-neutral-600">
-            Local only — seeded account <span class="font-mono text-neutral-800">arif@example.com</span>
-            / <span class="font-mono text-neutral-800">password</span>
-          </p>
-        @endif
+        <a href="{{ route('admin.password.request') }}" class="text-center text-[13px] text-neutral-700 underline underline-offset-2 hover:text-accent">Forgot your password?</a>
+
+
       </form>
     </div>
   </div>

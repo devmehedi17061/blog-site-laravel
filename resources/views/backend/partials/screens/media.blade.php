@@ -1,5 +1,5 @@
 <template x-if="$store.ui.screen === 'media'">
-<div x-data="media" x-init="init()" class="p-6">
+<div x-data="media" class="p-6">
 
   <div class="page-head">
     <div class="page-head-text">
